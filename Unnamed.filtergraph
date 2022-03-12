@@ -65,7 +65,7 @@
           uiLastY_Normal="104" uiopen_Normal="0">
     <PLUGIN name="projekt_zespo&#322;owy_2022" format="VST3" category="Fx"
             manufacturer="Projekt_Zespolowy(Grupa 3)" version="1.0.0" file="C:\Program Files\Common Files\VST3\projekt_zespo&#322;owy_2022.vst3"
-            uniqueId="fc6ce3ed" isInstrument="0" fileTime="17f7e0c4805" infoUpdateTime="17f7e1b688e"
+            uniqueId="fc6ce3ed" isInstrument="0" fileTime="17f7e0c4805" infoUpdateTime="17f7e2f5aa9"
             numInputs="2" numOutputs="2" isShell="0" uid="e9574294"/>
     <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
     <LAYOUT>
@@ -77,6 +77,24 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
+  <FILTER uid="6" x="0.4975" y="0.3084677419354839" uiLastX_Normal="191"
+          uiLastY_Normal="204" uiopen_Normal="0">
+    <PLUGIN name="AudioFilePlayer" format="VST3" category="Fx" manufacturer="Matkat Music LLC"
+            version="1.0.0" file="C:\Program Files\Common Files\VST3\AudioFilePlayer.vst3"
+            uniqueId="79fe81c" isInstrument="0" fileTime="17f7e2cfb13" infoUpdateTime="17f7e2f5aaa"
+            numInputs="2" numOutputs="2" isShell="0" uid="e95d02c7"/>
+    <STATE>347.VMjLgHU....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9DyM13BTIISX1UEaho2ZVkUdAAkKAwDUigWRWkEcQ0VTucmUY4BQtXUQLolShUELhsVRxHlXyolX0rlLhUSTxDFa2UTTq0jLZoGNFIlXMUUVyUULhoWRGgDL1UTUq0jQZQGNFEVciYkVmEDZgc1XrI1YUwzYhEUagoVPBE1YIYDR2YGLhcFLFIlbUEiXhkjdWAiKCwTYAk1RxTDai4hKt3hKt3hKt3hKt3haTU0PUQDU3sFaicVTWkEQEYzXmEDTtDDRTQlcEEiX4EDTtDDSt3xXt3hKt3hKt3hKlIUUMQUTPkzUZESQFM1ZQQEV5UjQ77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
+    <LAYOUT>
+      <INPUTS>
+        <BUS index="0" layout="L R"/>
+      </INPUTS>
+      <OUTPUTS>
+        <BUS index="0" layout="L R"/>
+      </OUTPUTS>
+    </LAYOUT>
+  </FILTER>
   <CONNECTION srcFilter="5" srcChannel="0" dstFilter="3" dstChannel="0"/>
   <CONNECTION srcFilter="5" srcChannel="1" dstFilter="3" dstChannel="1"/>
+  <CONNECTION srcFilter="6" srcChannel="0" dstFilter="5" dstChannel="0"/>
+  <CONNECTION srcFilter="6" srcChannel="1" dstFilter="5" dstChannel="1"/>
 </FILTERGRAPH>
