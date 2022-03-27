@@ -12,7 +12,7 @@
         <BUS index="0" layout="disabled"/>
       </INPUTS>
       <OUTPUTS>
-        <BUS index="0" layout="L R"/>
+        <BUS index="0" layout="disabled"/>
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
@@ -34,7 +34,7 @@
   <FILTER uid="3" x="0.5" y="0.9">
     <PLUGIN name="Audio Output" descriptiveName="" format="Internal" category="I/O devices"
             manufacturer="JUCE" version="1.0" file="" uniqueId="724248cb"
-            isInstrument="0" fileTime="0" infoUpdateTime="0" numInputs="2"
+            isInstrument="0" fileTime="0" infoUpdateTime="0" numInputs="0"
             numOutputs="0" isShell="0" uid="724248cb"/>
     <STATE>0.</STATE>
     <LAYOUT>
@@ -62,12 +62,12 @@
     </LAYOUT>
   </FILTER>
   <FILTER uid="5" x="0.49625" y="0.4919354838709677" uiLastX_Normal="148"
-          uiLastY_Normal="104" uiopen_Normal="0">
+          uiLastY_Normal="104" uiopen_Normal="1">
     <PLUGIN name="projekt_zespo&#322;owy_2022" format="VST3" category="Fx"
             manufacturer="Projekt_Zespolowy(Grupa 3)" version="1.0.0" file="C:\Program Files\Common Files\VST3\projekt_zespo&#322;owy_2022.vst3"
-            uniqueId="fc6ce3ed" isInstrument="0" fileTime="17f7e0c4805" infoUpdateTime="17f7e2f5aa9"
+            uniqueId="fc6ce3ed" isInstrument="0" fileTime="17fcc411fc5" infoUpdateTime="17fcc4275f7"
             numInputs="2" numOutputs="2" isShell="0" uid="e9574294"/>
-    <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
+    <STATE>423.VMjLg3Y....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9HyLy3BTEwlXmAiUYoWUrIVdA4hKAAkKTETRUAUSAAkKBolQY4BQtHTQDQzX5UTLXEWPlM1Y2Y0XqEDTtjDTt3hKt3hKt3hKE4RPtPUPIUETMEDTtHjZFkkKDYWPEgTUXo2ZwDlKXcEVxU0UY4BQPIDQt3hKt3hKt3BTBAkKtTETRUDUS4BQl4xaQYjKAoFTAIUUFE1ZEEiXqEjYic1cVM1ZAAkKIAkKt3hKt3hKtf0XtDjKTETRUAUSAAkKBolQY4BQ1ITQPUjV3UULh4FNFElZAY1XmcmUisVPP4RRP4hKt3hKt3hKlsjKC4hKt3hKt3hKt3hKtQUUCUEQTg2ZrM1YQcUVDUjQicVPP4RPHQEY1UTLhkWPP4RPL4hKi4hKt3hKt3hKtXlTU0DUQAURWoULEYzXqEEUXoWQFwyKIMzasA2atUlaz4COuX0TTMCTrU2Yo41TzEFck4C.</STATE>
     <LAYOUT>
       <INPUTS>
         <BUS index="0" layout="L R"/>
@@ -81,7 +81,7 @@
           uiLastY_Normal="204" uiopen_Normal="0">
     <PLUGIN name="AudioFilePlayer" format="VST3" category="Fx" manufacturer="Matkat Music LLC"
             version="1.0.0" file="C:\Program Files\Common Files\VST3\AudioFilePlayer.vst3"
-            uniqueId="79fe81c" isInstrument="0" fileTime="17f7e2cfb13" infoUpdateTime="17f7e2f5aaa"
+            uniqueId="79fe81c" isInstrument="0" fileTime="17f7e2cfb13" infoUpdateTime="17fcc4275f7"
             numInputs="2" numOutputs="2" isShell="0" uid="e95d02c7"/>
     <STATE>347.VMjLgHU....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9DyM13BTIISX1UEaho2ZVkUdAAkKAwDUigWRWkEcQ0VTucmUY4BQtXUQLolShUELhsVRxHlXyolX0rlLhUSTxDFa2UTTq0jLZoGNFIlXMUUVyUULhoWRGgDL1UTUq0jQZQGNFEVciYkVmEDZgc1XrI1YUwzYhEUagoVPBE1YIYDR2YGLhcFLFIlbUEiXhkjdWAiKCwTYAk1RxTDai4hKt3hKt3hKt3hKt3haTU0PUQDU3sFaicVTWkEQEYzXmEDTtDDRTQlcEEiX4EDTtDDSt3xXt3hKt3hKt3hKlIUUMQUTPkzUZESQFM1ZQQEV5UjQ77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
     <LAYOUT>
