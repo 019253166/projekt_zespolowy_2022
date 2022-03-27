@@ -36,6 +36,7 @@ Projekt_zespoowy_2022AudioProcessor::Projekt_zespoowy_2022AudioProcessor()
 
     bypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter("Bypassed"));
     jassert(bypassed != nullptr);
+    //tutaj jest konstruktor ¿eby parametry nie by³y przekazywane w ka¿dej partii próbek tylko raz
 }
 
 Projekt_zespoowy_2022AudioProcessor::~Projekt_zespoowy_2022AudioProcessor()
