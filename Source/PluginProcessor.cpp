@@ -22,20 +22,20 @@ Projekt_zespoowy_2022AudioProcessor::Projekt_zespoowy_2022AudioProcessor()
                        )
 #endif
 {
-    attack = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Attack"));
-    jassert(attack != nullptr);
+   compressor.attack = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Attack"));
+    jassert(compressor.attack != nullptr);
 
-    release = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Release"));
-    jassert(release != nullptr);
+    compressor.release = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Release"));
+    jassert(compressor.release != nullptr);
 
-    threshold = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Threshold"));
-    jassert(threshold != nullptr);
+    compressor.threshold = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Threshold"));
+    jassert(compressor.threshold != nullptr);
 
-    ratio = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("Ratio"));
-    jassert(ratio != nullptr);
+    compressor.ratio = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Ratio"));
+    jassert(compressor.ratio != nullptr);
 
-    bypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter("Bypassed"));
-    jassert(bypassed != nullptr);
+    compressor.bypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter("Bypassed"));
+    jassert(compressor.bypassed != nullptr);
     //tutaj jest konstruktor ¿eby parametry nie by³y przekazywane w ka¿dej partii próbek tylko raz
 }
 
@@ -166,18 +166,26 @@ void Projekt_zespoowy_2022AudioProcessor::processBlock (juce::AudioBuffer<float>
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    compressor.setAttack(attack->get());
-    compressor.setRelease(release->get());
-    compressor.setThreshold(threshold->get());
-    compressor.setRatio(ratio->getCurrentChoiceName().getFloatValue());
 
-    auto block = juce::dsp::AudioBlock<float>(buffer);
-    auto context = juce::dsp::ProcessContextReplacing<float>(block);
 
-    context.isBypassed = bypassed->get();
+  //compressor.setAttack(attack->get());
+  //compressor.setRelease(release->get());
+  //compressor.setThreshold(threshold->get());
+  //compressor.setRatio(ratio->get());
+    //wczytanie parametrów kompresora
 
-    compressor.process(context);
+  //auto block = juce::dsp::AudioBlock<float>(buffer);
+    //przejmuje bufor i dodaje do niego próbki sygna³u
+ // auto context = juce::dsp::ProcessContextReplacing<float>(block); 
+    //odpowiada za wymianê próbek w buforze na te przetworzone przez kompresor
 
+ // context.isBypassed = bypassed->get();
+    //jeœli bypass jest w³¹czony, nie rób nic
+
+ // compressor.process(context);
+    //w³aœciwe przetwarzanie sygna³u na podstawie podanych parametrów
+    compressor.updateCompressorSettings();
+    compressor.process(buffer);
 }
 
 //==============================================================================
@@ -219,24 +227,24 @@ juce::AudioProcessorValueTreeState::ParameterLayout Projekt_zespoowy_2022AudioPr
 
     using namespace juce;
 
-    layout.add(std::make_unique<AudioParameterFloat>("Threshold", "Threshold",NormalisableRange<float>(-60, 12, 1, 1),0));
+    layout.add(std::make_unique<AudioParameterFloat>("Threshold", "Threshold",NormalisableRange<float>(-40, 0, 1, 1),0));
 
-    auto attackReleaseRange = NormalisableRange<float>(5, 500, 1, 1);
+    auto attackReleaseRange = NormalisableRange<float>(1, 500, 1, 1);
 
     layout.add(std::make_unique<AudioParameterFloat>("Attack", "Attack", attackReleaseRange, 50));
 
     layout.add(std::make_unique<AudioParameterFloat>("Release", "Release", attackReleaseRange, 250));
 
-    auto choices = std::vector<double>{ 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 10, 15, 20, 50, 100 };
+    //auto choices = std::vector<double>{ 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 10, 15, 20, 50, 100 };
 
-    juce::StringArray sa;
+    //juce::StringArray sa;
 
-    for (auto choice : choices) 
-    {
-        sa.add(juce::String(choice, 1));
-    }
+    //for (auto choice : choices) 
+    //{
+       // sa.add(juce::String(choice, 1));
+   // }
 
-    layout.add(std::make_unique<AudioParameterChoice>("Ratio", "Ratio", sa, 3));
+    layout.add(std::make_unique<AudioParameterFloat>("Ratio", "Ratio", NormalisableRange<float>(1, 30, 0.1, 0.35f), 3));
 
     layout.add(std::make_unique <AudioParameterBool>("Bypassed", "Bypassed", false));
 

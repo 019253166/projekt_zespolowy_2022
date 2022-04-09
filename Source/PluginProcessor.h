@@ -10,6 +10,43 @@
 
 #include <JuceHeader.h>
 
+struct CompressorBand 
+{
+    juce::AudioParameterFloat* attack{ nullptr };
+    juce::AudioParameterFloat* release{ nullptr };
+    juce::AudioParameterFloat* threshold{ nullptr };
+    juce::AudioParameterFloat* ratio{ nullptr };
+    juce::AudioParameterBool* bypassed{ nullptr };
+
+    void prepare(const juce::dsp::ProcessSpec& spec)
+    {
+        compressor.prepare(spec);
+    }
+
+    void updateCompressorSettings()
+    {
+        compressor.setAttack(attack->get());
+        compressor.setRelease(release->get());
+        compressor.setThreshold(threshold->get());
+        compressor.setRatio(ratio->get());
+    }
+
+    void process(juce::AudioBuffer<float>& buffer)
+    {
+        auto block = juce::dsp::AudioBlock<float>(buffer);
+        //przejmuje bufor i dodaje do niego próbki sygna³u
+        auto context = juce::dsp::ProcessContextReplacing<float>(block);
+        //odpowiada za wymianê próbek w buforze na te przetworzone przez kompresor
+
+        context.isBypassed = bypassed->get();
+        //jeœli bypass jest w³¹czony, nie rób nic
+
+        compressor.process(context);
+    }
+private:
+    juce::dsp::Compressor<float> compressor;
+    
+};
 //==============================================================================
 /**
 */
@@ -60,14 +97,15 @@ public:
 
 private:
 
-    juce::dsp::Compressor<float> compressor;
+  //  juce::dsp::Compressor<float> compressor;
 
-    juce::AudioParameterFloat* attack{ nullptr };
-    juce::AudioParameterFloat* release{ nullptr };
-    juce::AudioParameterFloat* threshold{ nullptr };
-    juce::AudioParameterChoice* ratio{ nullptr };
-    juce::AudioParameterBool* bypassed{ nullptr };
+//    juce::AudioParameterFloat* attack{ nullptr };
+ //   juce::AudioParameterFloat* release{ nullptr };
+  //juce::AudioParameterFloat* threshold{ nullptr };
+  //juce::AudioParameterFloat* ratio{ nullptr };
+  //juce::AudioParameterBool* bypassed{ nullptr };
 
+    CompressorBand compressor;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Projekt_zespoowy_2022AudioProcessor)
 };
