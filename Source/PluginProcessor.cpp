@@ -22,20 +22,48 @@ Projekt_zespoowy_2022AudioProcessor::Projekt_zespoowy_2022AudioProcessor()
                        )
 #endif
 {
-    attack = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Attack"));
-    jassert(attack != nullptr);
+	using namespace Parameters;
+	const auto& parameters = GetParameters();
 
-    release = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Release"));
-    jassert(release != nullptr);
+	//przekazywanie parametrów typu float z apvts
+	auto floatHelper = [&apvts = this->apvts, &parameters](auto& parameter, const auto& parameterName)
+	{
+		parameter = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(parameters.at(parameterName)));
+		jassert(parameter != nullptr);
 
-    threshold = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Threshold"));
-    jassert(threshold != nullptr);
+	};
+	//przekazywanie parametrów typu bool z apvts
+	auto boolHelper = [&apvts = this->apvts, &parameters](auto& parameter, const auto& parameterName)
+	{
+		parameter = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(parameters.at(parameterName)));
+		jassert(parameter != nullptr);
 
-    ratio = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("Ratio"));
-    jassert(ratio != nullptr);
+	};
 
-    bypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter("Bypassed"));
-    jassert(bypassed != nullptr);
+	floatHelper(compressor.attack, Names::Attack_Low);
+	floatHelper(compressor.release, Names::Release_Low);
+	floatHelper(compressor.threshold, Names::Threshold_Low);
+	floatHelper(compressor.ratio, Names::Ratio_Low);
+	boolHelper(compressor.bypassed, Names::Bypassed_Low);
+
+	//filtry
+	floatHelper(lowLowMidCrossover, Names::Low_LowMid_Crossover_Freq);
+	floatHelper(lowMidHighMidCrossover, Names::LowMid_HighMid_Crossover_Freq);
+	floatHelper(highMidHighCrossover, Names::HighMid_High_Crossover_Freq);
+	
+	
+	LP1.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
+	LP2.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
+	LP3.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
+	HP1.setType(juce::dsp::LinkwitzRileyFilterType::highpass);
+	HP2.setType(juce::dsp::LinkwitzRileyFilterType::highpass);
+	HP3.setType(juce::dsp::LinkwitzRileyFilterType::highpass);
+	invAP.setType(juce::dsp::LinkwitzRileyFilterType::allpass);
+
+
+
+
+    //tutaj jest konstruktor ¿eby parametry nie by³y przekazywane w ka¿dej partii próbek tylko raz
 }
 
 Projekt_zespoowy_2022AudioProcessor::~Projekt_zespoowy_2022AudioProcessor()
@@ -105,19 +133,35 @@ void Projekt_zespoowy_2022AudioProcessor::changeProgramName (int index, const ju
 }
 
 //==============================================================================
-void Projekt_zespoowy_2022AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void Projekt_zespoowy_2022AudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+	// Use this method as the place to do any pre-playback
+	// initialisation that you need..
 
-    juce::dsp::ProcessSpec spec;
-    spec.maximumBlockSize = samplesPerBlock;
-    spec.numChannels = getTotalNumOutputChannels();
-    spec.sampleRate = sampleRate;
+	juce::dsp::ProcessSpec spec;
+	spec.maximumBlockSize = samplesPerBlock;
+	spec.numChannels = getTotalNumOutputChannels();
+	spec.sampleRate = sampleRate;
 
-    compressor.prepare(spec);
+	compressor.prepare(spec);
+
+	//filtry
+	LP1.prepare(spec);
+	LP2.prepare(spec);
+	LP3.prepare(spec);
+	HP1.prepare(spec);
+	HP2.prepare(spec);
+	HP3.prepare(spec);
+	
+	//allpas
+	invAP.prepare(spec);
+	invAPBuffer.setSize(spec.numChannels, samplesPerBlock);
+		
+	for (auto& buffer : filterBuffers)
+	{
+		buffer.setSize(spec.numChannels, samplesPerBlock);
+	}
 }
-
 void Projekt_zespoowy_2022AudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
@@ -165,18 +209,136 @@ void Projekt_zespoowy_2022AudioProcessor::processBlock (juce::AudioBuffer<float>
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    compressor.setAttack(attack->get());
-    compressor.setRelease(release->get());
-    compressor.setThreshold(threshold->get());
-    compressor.setRatio(ratio->getCurrentChoiceName().getFloatValue());
 
-    auto block = juce::dsp::AudioBlock<float>(buffer);
-    auto context = juce::dsp::ProcessContextReplacing<float>(block);
+	/*
+  //compressor.setAttack(attack->get());
+  //compressor.setRelease(release->get());
+  //compressor.setThreshold(threshold->get());
+  //compressor.setRatio(ratio->get());
+    //wczytanie parametrów kompresora
 
-    context.isBypassed = bypassed->get();
+  //auto block = juce::dsp::AudioBlock<float>(buffer);
+    //przejmuje bufor i dodaje do niego próbki sygna³u
+ // auto context = juce::dsp::ProcessContextReplacing<float>(block); 
+    //odpowiada za wymianê próbek w buforze na te przetworzone przez kompresor
 
-    compressor.process(context);
+ // context.isBypassed = bypassed->get();
+    //jeœli bypass jest w³¹czony, nie rób nic
 
+ // compressor.process(context);
+    //w³aœciwe przetwarzanie sygna³u na podstawie podanych parametrów
+	*/
+    //compressor.updateCompressorSettings();
+    //compressor.process(buffer);
+
+	//filtry
+	//kopiowanie buforów
+	for (auto& fb : filterBuffers)
+	{
+		fb = buffer;
+	}
+
+	invAPBuffer = buffer;
+
+	//ustawienie częstotliwości filtrów
+	auto lowLowMidCutoff = lowLowMidCrossover -> get();
+	LP1.setCutoffFrequency(lowLowMidCutoff);
+	HP1.setCutoffFrequency(lowLowMidCutoff);
+
+	auto lowMidHighMidCutoff = lowMidHighMidCrossover -> get();
+	LP2.setCutoffFrequency(lowMidHighMidCutoff);
+	HP2.setCutoffFrequency(lowMidHighMidCutoff);
+
+	auto highMidHighCutoff = highMidHighCrossover -> get();
+	LP3.setCutoffFrequency(highMidHighCutoff);
+	HP3.setCutoffFrequency(highMidHighCutoff);
+	invAP.setCutoffFrequency(20000);
+	 //do testu
+
+	auto fb0Block = juce::dsp::AudioBlock<float>(filterBuffers[0]);
+	auto fb1Block = juce::dsp::AudioBlock<float>(filterBuffers[1]);
+	auto fb2Block = juce::dsp::AudioBlock<float>(filterBuffers[2]);
+	auto fb3Block = juce::dsp::AudioBlock<float>(filterBuffers[3]);
+	
+	auto invAPBlock = juce::dsp::AudioBlock<float>(invAPBuffer);
+	
+	auto fb0Ctx = juce::dsp::ProcessContextReplacing<float>(fb0Block);
+	auto fb1Ctx = juce::dsp::ProcessContextReplacing<float>(fb1Block);
+	auto fb2Ctx = juce::dsp::ProcessContextReplacing<float>(fb2Block);
+	auto fb3Ctx = juce::dsp::ProcessContextReplacing<float>(fb3Block);
+	
+	auto invAPCtx = juce::dsp::ProcessContextReplacing<float>(invAPBlock);
+	invAP.process(invAPCtx);
+	/*
+	//filtry do buforów
+	LP1.process(fb0Ctx);
+	AP2.process(fb0Ctx);
+	AP3.process(fb0Ctx);
+
+	HP1.process(fb1Ctx);
+	filterBuffers[2] = filterBuffers[1];
+	
+	LP2.process(fb1Ctx);
+	AP3.process(fb1Ctx);
+
+	HP2.process(fb2Ctx);
+	filterBuffers[3] = filterBuffers[2];
+	LP3.process(fb2Ctx);
+	
+	HP3.process(fb3Ctx);
+	*/
+	
+	//LOW = LP2 + LP1
+	LP2.process(fb1Ctx);
+	filterBuffers[0] = filterBuffers[1];
+	LP1.process(fb0Ctx);
+
+	//LOWMID = LP2 + HP1
+	HP1.process(fb1Ctx);
+
+	//HIGHMID = HP2 + LP3
+	HP2.process(fb3Ctx);
+	filterBuffers[2] = filterBuffers[3];
+	LP3.process(fb2Ctx);
+
+	//HIGH = HP2 + HP3
+	HP3.process(fb3Ctx);
+
+	auto numSamples = buffer.getNumSamples();
+	auto numChannels = buffer.getNumChannels();
+
+	//if (compressor.bypassed->get()) {
+	//	return;
+	//}
+
+	buffer.clear();
+
+	
+	//lambda przechwytywanie pasm
+	auto addFilterBand = [nc = numChannels, ns = numSamples](auto& inputBuffer, const auto& source)
+	{
+		for(auto i = 0; i < nc; ++i)
+		{
+			//(docelowy kanał, docelowa próbka startowa, bufor źródłowy, kanał źródłowy, źródłowa próbka startowa, liczba próbek)
+			inputBuffer.addFrom(i, 0, source, i, 0, ns);
+		}
+	};
+	addFilterBand(buffer, filterBuffers[0]);
+	addFilterBand(buffer, filterBuffers[1]);
+	addFilterBand(buffer, filterBuffers[2]);
+	addFilterBand(buffer, filterBuffers[3]);
+
+
+	//jeśli bypass włączony - odwracamy cały sygnał
+	if (compressor.bypassed->get()) 
+	{
+		for (auto ch = 0; ch < numChannels; ++ch)
+		{
+			juce::FloatVectorOperations::multiply(invAPBuffer.getWritePointer(ch), -1.f, numSamples);
+		}
+		addFilterBand(buffer, invAPBuffer);
+	}
+	
 }
 
 //==============================================================================
@@ -217,28 +379,28 @@ juce::AudioProcessorValueTreeState::ParameterLayout Projekt_zespoowy_2022AudioPr
     APVTS::ParameterLayout layout;
 
     using namespace juce;
+	using namespace Parameters;
+	const auto& parameters = GetParameters();
 
-    layout.add(std::make_unique<AudioParameterFloat>("Threshold", "Threshold",NormalisableRange<float>(-60, 12, 1, 1),0));
+	auto attackReleaseRange = NormalisableRange<float>(1, 500, 1, 1);
 
-    auto attackReleaseRange = NormalisableRange<float>(5, 500, 1, 1);
+	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Threshold_Low), parameters.at(Names::Threshold_Low), NormalisableRange<float>(-40, 0, 1, 1), 0));
+	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Attack_Low), parameters.at(Names::Attack_Low), attackReleaseRange, 50));
+	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Release_Low), parameters.at(Names::Release_Low), attackReleaseRange, 250));
+	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Ratio_Low), parameters.at(Names::Ratio_Low), NormalisableRange<float>(1, 30, 0.1, 0.35f), 3));
+	layout.add(std::make_unique<AudioParameterBool>(parameters.at(Names::Bypassed_Low), parameters.at(Names::Bypassed_Low), false));
 
+
+	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Low_LowMid_Crossover_Freq), parameters.at(Names::Low_LowMid_Crossover_Freq), NormalisableRange<float>(20, 250, 1, 1), 200));
+	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::LowMid_HighMid_Crossover_Freq), parameters.at(Names::LowMid_HighMid_Crossover_Freq), NormalisableRange<float>(500, 2000, 1, 1), 1500));
+	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::HighMid_High_Crossover_Freq), parameters.at(Names::HighMid_High_Crossover_Freq), NormalisableRange<float>(5000, 20000, 1, 1), 6300));
+    /*
+	layout.add(std::make_unique<AudioParameterFloat>("Threshold", "Threshold",NormalisableRange<float>(-40, 0, 1, 1),0));
     layout.add(std::make_unique<AudioParameterFloat>("Attack", "Attack", attackReleaseRange, 50));
-
     layout.add(std::make_unique<AudioParameterFloat>("Release", "Release", attackReleaseRange, 250));
-
-    auto choices = std::vector<double>{ 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 10, 15, 20, 50, 100 };
-
-    juce::StringArray sa;
-
-    for (auto choice : choices) 
-    {
-        sa.add(juce::String(choice, 1));
-    }
-
-    layout.add(std::make_unique<AudioParameterChoice>("Ratio", "Ratio", sa, 3));
-
+    layout.add(std::make_unique<AudioParameterFloat>("Ratio", "Ratio", NormalisableRange<float>(1, 30, 0.1, 0.35f), 3));
     layout.add(std::make_unique <AudioParameterBool>("Bypassed", "Bypassed", false));
-
+	*/
     return layout;
 
 }
