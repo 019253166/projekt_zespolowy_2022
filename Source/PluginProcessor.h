@@ -43,6 +43,16 @@ namespace Parameters
 		Bypassed_LowMid,
 		Bypassed_HighMid,
 		Bypassed_High,
+
+		Mute_Low,
+		Mute_LowMid,
+		Mute_HighMid,
+		Mute_High,
+
+		Solo_Low,
+		Solo_LowMid,
+		Solo_HighMid,
+		Solo_High,
 	};
 
 
@@ -69,7 +79,6 @@ namespace Parameters
 			{Release_HighMid, "Release HighMid"},
 			{Release_High, "Release High"},
 
-
 			{Ratio_Low, "Ratio Low"},
 			{Ratio_LowMid, "Ratio LowMid"},
 			{Ratio_HighMid, "Ratio HighMid"},
@@ -79,6 +88,16 @@ namespace Parameters
 			{Bypassed_LowMid, "Bypassed LowMid"},
 			{Bypassed_HighMid, "Bypassed HighMid"},
 			{Bypassed_High, "Bypassed High"},
+
+			{Mute_Low, "Mute Low"},
+			{Mute_LowMid, "Mute LowMid"},
+			{Mute_HighMid, "Mute HighMid"},
+			{Mute_High, "Mute High"},
+
+			{Solo_Low, "Solo Low"},
+			{Solo_LowMid, "Solo LowMid"},
+			{Solo_HighMid, "Solo HighMid"},
+			{Solo_High, "Solo High"},
 
 		};
 		return parameters;
@@ -92,6 +111,8 @@ struct CompressorBand
     juce::AudioParameterFloat* threshold{ nullptr };
     juce::AudioParameterFloat* ratio{ nullptr };
     juce::AudioParameterBool* bypassed{ nullptr };
+    juce::AudioParameterBool* mute{ nullptr };
+    juce::AudioParameterBool* solo{ nullptr };
 
     void prepare(const juce::dsp::ProcessSpec& spec)
     {
@@ -179,7 +200,11 @@ private:
 	juce::AudioParameterFloat* ratio{ nullptr };
 	juce::AudioParameterBool* bypassed{ nullptr };
 	*/
-    CompressorBand compressor;
+    std::array<CompressorBand, 4> compressors;
+	CompressorBand& lowComp = compressors[0];
+	CompressorBand& lowMidComp = compressors[1];
+	CompressorBand& highMidComp = compressors[2];
+	CompressorBand& highComp = compressors[3];
 
 	//filtry Linkwitza-Rileya
 	using Filter = juce::dsp::LinkwitzRileyFilter<float>;
@@ -188,15 +213,14 @@ private:
 	Filter HP1, HP2, HP3;
 
 	
-
 	juce::AudioParameterFloat* lowLowMidCrossover{ nullptr };
 	juce::AudioParameterFloat* lowMidHighMidCrossover{ nullptr };
 	juce::AudioParameterFloat* highMidHighCrossover{ nullptr };
 	std::array<juce::AudioBuffer<float>, 4> filterBuffers;
 
 	//testowanie odwróconym allpass
-	Filter invAP;
-	juce::AudioBuffer<float> invAPBuffer;
+	//Filter invAP;
+	//juce::AudioBuffer<float> invAPBuffer;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Projekt_zespoowy_2022AudioProcessor)
 };
