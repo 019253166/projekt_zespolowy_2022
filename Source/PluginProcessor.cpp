@@ -84,6 +84,10 @@ Projekt_zespoowy_2022AudioProcessor::Projekt_zespoowy_2022AudioProcessor()
 	HP2.setType(juce::dsp::LinkwitzRileyFilterType::highpass);
 	HP3.setType(juce::dsp::LinkwitzRileyFilterType::highpass);
 
+	//wzmocnienie
+	floatHelper(inputGainParameter, Names::Input_Gain);
+	floatHelper(outputGainParameter, Names::Output_Gain);
+
 
 	//invAP.setType(juce::dsp::LinkwitzRileyFilterType::allpass);
 
@@ -182,6 +186,13 @@ void Projekt_zespoowy_2022AudioProcessor::prepareToPlay(double sampleRate, int s
 	//invAP.prepare(spec);
 	//invAPBuffer.setSize(spec.numChannels, samplesPerBlock);
 		
+	//wzmocnienie
+	inputGain.prepare(spec);
+	outputGain.prepare(spec);
+
+	inputGain.setRampDurationSeconds(0.05);
+	inputGain.setRampDurationSeconds(0.05);
+
 	for (auto& buffer : filterBuffers)
 	{
 		buffer.setSize(spec.numChannels, samplesPerBlock);
@@ -254,6 +265,17 @@ void Projekt_zespoowy_2022AudioProcessor::processBlock (juce::AudioBuffer<float>
  // compressor.process(context);
     //w³aœciwe przetwarzanie sygna³u na podstawie podanych parametrów
 	*/
+
+	//wzmocnienie
+	inputGain.setGainDecibels(inputGainParameter->get());
+	outputGain.setGainDecibels(outputGainParameter->get());
+
+	auto inputGainBlock = juce::dsp::AudioBlock<float>(buffer);
+	auto inputGainCtx = juce::dsp::ProcessContextReplacing<float>(inputGainBlock);
+	
+	auto outputGainBlock = juce::dsp::AudioBlock<float>(buffer);
+	auto outputGainCtx = juce::dsp::ProcessContextReplacing<float>(outputGainBlock);
+	inputGain.process(inputGainCtx);
    	
 	//filtry
 	//kopiowanie buforów
@@ -378,6 +400,9 @@ void Projekt_zespoowy_2022AudioProcessor::processBlock (juce::AudioBuffer<float>
 		}
 	}
 
+	//wzmocnienie output
+	outputGain.process(outputGainCtx);
+
 	/*
 	addFilterBand(buffer, filterBuffers[0]);
 	addFilterBand(buffer, filterBuffers[1]);
@@ -446,6 +471,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout Projekt_zespoowy_2022AudioPr
 	const auto& parameters = GetParameters();
 
 	auto attackReleaseRange = NormalisableRange<float>(1, 500, 1, 1);
+	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Input_Gain), parameters.at(Names::Input_Gain), NormalisableRange<float>(-20.0f, 20.0f, 0.1f, 1.0f), 0));
+	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Output_Gain), parameters.at(Names::Output_Gain), NormalisableRange<float>(-20.0f, 20.0f, 0.1f, 1.0f), 0));
+
 
 	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Threshold_Low), parameters.at(Names::Threshold_Low), NormalisableRange<float>(-40, 0, 1, 1), 0));
 	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Threshold_LowMid), parameters.at(Names::Threshold_LowMid), NormalisableRange<float>(-40, 0, 1, 1), 0));
@@ -482,11 +510,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout Projekt_zespoowy_2022AudioPr
 	layout.add(std::make_unique<AudioParameterBool>(parameters.at(Names::Mute_HighMid), parameters.at(Names::Mute_HighMid), false));
 	layout.add(std::make_unique<AudioParameterBool>(parameters.at(Names::Mute_High), parameters.at(Names::Mute_High), false));
 
-
 	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Low_LowMid_Crossover_Freq), parameters.at(Names::Low_LowMid_Crossover_Freq), NormalisableRange<float>(20, 250, 1, 1), 200));
 	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::LowMid_HighMid_Crossover_Freq), parameters.at(Names::LowMid_HighMid_Crossover_Freq), NormalisableRange<float>(500, 2000, 1, 1), 1500));
 	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::HighMid_High_Crossover_Freq), parameters.at(Names::HighMid_High_Crossover_Freq), NormalisableRange<float>(5000, 20000, 1, 1), 6300));
-    /*
+   
+	/*
 	layout.add(std::make_unique<AudioParameterFloat>("Threshold", "Threshold",NormalisableRange<float>(-40, 0, 1, 1),0));
     layout.add(std::make_unique<AudioParameterFloat>("Attack", "Attack", attackReleaseRange, 50));
     layout.add(std::make_unique<AudioParameterFloat>("Release", "Release", attackReleaseRange, 250));

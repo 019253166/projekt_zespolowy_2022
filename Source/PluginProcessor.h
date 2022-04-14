@@ -53,6 +53,9 @@ namespace Parameters
 		Solo_LowMid,
 		Solo_HighMid,
 		Solo_High,
+
+		Input_Gain,
+		Output_Gain,
 	};
 
 
@@ -60,24 +63,24 @@ namespace Parameters
 	{
 		static std::map<Names, juce::String> parameters = 
 		{
-			{Low_LowMid_Crossover_Freq, "Low-LowMid Crossover Freq"},
-			{LowMid_HighMid_Crossover_Freq, "LowMid-HighMid Crossover Freq"},
-			{HighMid_High_Crossover_Freq, "HighMid-High Crossover Freq"},
+			{Low_LowMid_Crossover_Freq, "Low-LowMid Crossover (Hz)"},
+			{LowMid_HighMid_Crossover_Freq, "LowMid-HighMid Crossover (Hz)"},
+			{HighMid_High_Crossover_Freq, "HighMid-High Crossover (Hz)"},
 
-			{Threshold_Low, "Threshold Low"},
-			{Threshold_LowMid, "Threshold LowMid"},
-			{Threshold_HighMid, "Threshold HighMid"},
-			{Threshold_High, "Threshold High"},
+			{Threshold_Low, "Threshold Low (dB)"},
+			{Threshold_LowMid, "Threshold LowMid (dB)"},
+			{Threshold_HighMid, "Threshold HighMid (dB)"},
+			{Threshold_High, "Threshold High (dB)"},
 
-			{Attack_Low, "Attack Low"},
-			{Attack_LowMid, "Attack LowMid"},
-			{Attack_HighMid, "Attack HighMid"},
-			{Attack_High, "Attack High"},
+			{Attack_Low, "Attack Low (ms)"},
+			{Attack_LowMid, "Attack LowMid (ms)"},
+			{Attack_HighMid, "Attack HighMid (ms)"},
+			{Attack_High, "Attack High (ms)"},
 
-			{Release_Low, "Release Low"},
-			{Release_LowMid, "Release LowMid"},
-			{Release_HighMid, "Release HighMid"},
-			{Release_High, "Release High"},
+			{Release_Low, "Release Low (ms)"},
+			{Release_LowMid, "Release LowMid (ms)"},
+			{Release_HighMid, "Release HighMid (ms)"},
+			{Release_High, "Release High (ms)"},
 
 			{Ratio_Low, "Ratio Low"},
 			{Ratio_LowMid, "Ratio LowMid"},
@@ -98,6 +101,9 @@ namespace Parameters
 			{Solo_LowMid, "Solo LowMid"},
 			{Solo_HighMid, "Solo HighMid"},
 			{Solo_High, "Solo High"},
+
+			{Input_Gain,"Input Gain (dB)"},
+			{Output_Gain,"Output Gain (dB)"},
 
 		};
 		return parameters;
@@ -217,6 +223,13 @@ private:
 	juce::AudioParameterFloat* lowMidHighMidCrossover{ nullptr };
 	juce::AudioParameterFloat* highMidHighCrossover{ nullptr };
 	std::array<juce::AudioBuffer<float>, 4> filterBuffers;
+
+	//wzmocnienie wejścia i wyjścia
+	juce::dsp::Gain<float> inputGain, outputGain;
+	juce::AudioParameterFloat* inputGainParameter{ nullptr };
+	juce::AudioParameterFloat* outputGainParameter{ nullptr };
+
+	
 
 	//testowanie odwróconym allpass
 	//Filter invAP;
