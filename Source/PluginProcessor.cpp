@@ -37,7 +37,10 @@ Projekt_zespoowy_2022AudioProcessor::Projekt_zespoowy_2022AudioProcessor()
     compressor.bypassed = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter("Bypassed"));
     jassert(compressor.bypassed != nullptr);
     //tutaj jest konstruktor ¿eby parametry nie by³y przekazywane w ka¿dej partii próbek tylko raz
-}
+
+    compressor.knee = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter("Knee"));
+}   
+
 
 Projekt_zespoowy_2022AudioProcessor::~Projekt_zespoowy_2022AudioProcessor()
 {
@@ -247,6 +250,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout Projekt_zespoowy_2022AudioPr
     layout.add(std::make_unique<AudioParameterFloat>("Ratio", "Ratio", NormalisableRange<float>(1, 30, 0.1, 0.35f), 3));
 
     layout.add(std::make_unique <AudioParameterBool>("Bypassed", "Bypassed", false));
+
+    layout.add(std::make_unique <AudioParameterFloat> ("Knee", "Knee", NormalisableRange<float>(0, 1, 0.1), 0));
 
     return layout;
 

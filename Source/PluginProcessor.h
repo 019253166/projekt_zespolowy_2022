@@ -17,6 +17,7 @@ struct CompressorBand
     juce::AudioParameterFloat* threshold{ nullptr };
     juce::AudioParameterFloat* ratio{ nullptr };
     juce::AudioParameterBool* bypassed{ nullptr };
+    juce::AudioParameterFloat* knee{ nullptr };
 
     void prepare(const juce::dsp::ProcessSpec& spec)
     {
@@ -29,6 +30,7 @@ struct CompressorBand
         compressor.setRelease(release->get());
         compressor.setThreshold(threshold->get());
         compressor.setRatio(ratio->get());
+        compressor.setKnee(knee->get());
     }
 
     void process(juce::AudioBuffer<float>& buffer)
