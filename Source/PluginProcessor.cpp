@@ -44,14 +44,17 @@ Projekt_zespoowy_2022AudioProcessor::Projekt_zespoowy_2022AudioProcessor()
 	floatHelper(lowComp.release, Names::Release_Low);
 	floatHelper(lowComp.threshold, Names::Threshold_Low);
 	floatHelper(lowComp.ratio, Names::Ratio_Low);
+	floatHelper(lowComp.knee, Names::Knee_Low);
 	boolHelper(lowComp.bypassed, Names::Bypassed_Low);
 	boolHelper(lowComp.mute, Names::Mute_Low);
 	boolHelper(lowComp.solo, Names::Solo_Low);
+	
 
 	floatHelper(lowMidComp.attack, Names::Attack_LowMid);
 	floatHelper(lowMidComp.release, Names::Release_LowMid);
 	floatHelper(lowMidComp.threshold, Names::Threshold_LowMid);
 	floatHelper(lowMidComp.ratio, Names::Ratio_LowMid);
+	floatHelper(lowMidComp.knee, Names::Knee_LowMid);
 	boolHelper(lowMidComp.bypassed, Names::Bypassed_LowMid);
 	boolHelper(lowMidComp.mute, Names::Mute_LowMid);
 	boolHelper(lowMidComp.solo, Names::Solo_LowMid);
@@ -60,6 +63,7 @@ Projekt_zespoowy_2022AudioProcessor::Projekt_zespoowy_2022AudioProcessor()
 	floatHelper(highMidComp.release, Names::Release_HighMid);
 	floatHelper(highMidComp.threshold, Names::Threshold_HighMid);
 	floatHelper(highMidComp.ratio, Names::Ratio_HighMid);
+	floatHelper(highMidComp.knee, Names::Knee_HighMid);
 	boolHelper(highMidComp.bypassed, Names::Bypassed_HighMid);
 	boolHelper(highMidComp.mute, Names::Mute_HighMid);
 	boolHelper(highMidComp.solo, Names::Solo_HighMid);
@@ -68,9 +72,12 @@ Projekt_zespoowy_2022AudioProcessor::Projekt_zespoowy_2022AudioProcessor()
 	floatHelper(highComp.release, Names::Release_High);
 	floatHelper(highComp.threshold, Names::Threshold_High);
 	floatHelper(highComp.ratio, Names::Ratio_High);
+	floatHelper(highComp.knee, Names::Knee_High);
 	boolHelper(highComp.bypassed, Names::Bypassed_High);
 	boolHelper(highComp.mute, Names::Mute_High);
 	boolHelper(highComp.solo, Names::Solo_High);
+
+
 
 	//filtry
 	floatHelper(lowLowMidCrossover, Names::Low_LowMid_Crossover_Freq);
@@ -165,11 +172,16 @@ void Projekt_zespoowy_2022AudioProcessor::prepareToPlay(double sampleRate, int s
 {
 	// Use this method as the place to do any pre-playback
 	// initialisation that you need..
+	
 
 	juce::dsp::ProcessSpec spec;
 	spec.maximumBlockSize = samplesPerBlock;
 	spec.numChannels = getTotalNumOutputChannels();
 	spec.sampleRate = sampleRate;
+
+	//LATENCJA :(
+	AudioProcessor::setLatencySamples(0);
+	
 
 	for(auto &comp:compressors)
 		comp.prepare(spec);
@@ -494,6 +506,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout Projekt_zespoowy_2022AudioPr
 	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Ratio_LowMid), parameters.at(Names::Ratio_LowMid), NormalisableRange<float>(1, 30, 0.1, 0.35f), 3));
 	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Ratio_HighMid), parameters.at(Names::Ratio_HighMid), NormalisableRange<float>(1, 30, 0.1, 0.35f), 3));
 	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Ratio_High), parameters.at(Names::Ratio_High), NormalisableRange<float>(1, 30, 0.1, 0.35f), 3));
+
+	layout.add(std::make_unique <AudioParameterFloat>(parameters.at(Names::Knee_Low), parameters.at(Names::Knee_Low), NormalisableRange<float>(0, 1, 0.01, 1), 0));
+	layout.add(std::make_unique <AudioParameterFloat>(parameters.at(Names::Knee_LowMid), parameters.at(Names::Knee_LowMid), NormalisableRange<float>(0, 1, 0.01, 1), 0));
+	layout.add(std::make_unique <AudioParameterFloat>(parameters.at(Names::Knee_HighMid), parameters.at(Names::Knee_HighMid), NormalisableRange<float>(0, 1, 0.01, 1), 0));
+	layout.add(std::make_unique <AudioParameterFloat>(parameters.at(Names::Knee_High), parameters.at(Names::Knee_High), NormalisableRange<float>(0, 1, 0.01, 1), 0));
 	
 	layout.add(std::make_unique<AudioParameterBool>(parameters.at(Names::Bypassed_Low), parameters.at(Names::Bypassed_Low), false));
 	layout.add(std::make_unique<AudioParameterBool>(parameters.at(Names::Bypassed_LowMid), parameters.at(Names::Bypassed_LowMid), false));
@@ -513,6 +530,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout Projekt_zespoowy_2022AudioPr
 	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Low_LowMid_Crossover_Freq), parameters.at(Names::Low_LowMid_Crossover_Freq), NormalisableRange<float>(20, 250, 1, 1), 200));
 	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::LowMid_HighMid_Crossover_Freq), parameters.at(Names::LowMid_HighMid_Crossover_Freq), NormalisableRange<float>(500, 2000, 1, 1), 1500));
 	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::HighMid_High_Crossover_Freq), parameters.at(Names::HighMid_High_Crossover_Freq), NormalisableRange<float>(5000, 20000, 1, 1), 6300));
+	
    
 	/*
 	layout.add(std::make_unique<AudioParameterFloat>("Threshold", "Threshold",NormalisableRange<float>(-40, 0, 1, 1),0));

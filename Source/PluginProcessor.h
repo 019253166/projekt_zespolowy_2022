@@ -54,6 +54,11 @@ namespace Parameters
 		Solo_HighMid,
 		Solo_High,
 
+		Knee_Low,
+		Knee_LowMid,
+		Knee_HighMid,
+		Knee_High,
+
 		Input_Gain,
 		Output_Gain,
 	};
@@ -102,6 +107,11 @@ namespace Parameters
 			{Solo_HighMid, "Solo HighMid"},
 			{Solo_High, "Solo High"},
 
+			{Knee_Low, "Knee Low"},
+			{Knee_LowMid, "Knee LowMid"},
+			{Knee_HighMid, "Knee HighMid"},
+			{Knee_High, "Knee High"},
+
 			{Input_Gain,"Input Gain (dB)"},
 			{Output_Gain,"Output Gain (dB)"},
 
@@ -119,6 +129,7 @@ struct CompressorBand
     juce::AudioParameterBool* bypassed{ nullptr };
     juce::AudioParameterBool* mute{ nullptr };
     juce::AudioParameterBool* solo{ nullptr };
+    juce::AudioParameterFloat* knee{ nullptr };
 
     void prepare(const juce::dsp::ProcessSpec& spec)
     {
@@ -131,6 +142,7 @@ struct CompressorBand
         compressor.setRelease(release->get());
         compressor.setThreshold(threshold->get());
         compressor.setRatio(ratio->get());
+		compressor.setKnee(knee->get());
     }
 
     void process(juce::AudioBuffer<float>& buffer)
@@ -206,6 +218,7 @@ private:
 	juce::AudioParameterFloat* ratio{ nullptr };
 	juce::AudioParameterBool* bypassed{ nullptr };
 	*/
+	//4 kompresory
     std::array<CompressorBand, 4> compressors;
 	CompressorBand& lowComp = compressors[0];
 	CompressorBand& lowMidComp = compressors[1];
@@ -218,7 +231,6 @@ private:
 	Filter LP1, LP2, LP3;
 	Filter HP1, HP2, HP3;
 
-	
 	juce::AudioParameterFloat* lowLowMidCrossover{ nullptr };
 	juce::AudioParameterFloat* lowMidHighMidCrossover{ nullptr };
 	juce::AudioParameterFloat* highMidHighCrossover{ nullptr };
@@ -229,7 +241,7 @@ private:
 	juce::AudioParameterFloat* inputGainParameter{ nullptr };
 	juce::AudioParameterFloat* outputGainParameter{ nullptr };
 
-	
+
 
 	//testowanie odwróconym allpass
 	//Filter invAP;
