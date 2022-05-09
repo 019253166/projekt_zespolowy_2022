@@ -2,7 +2,8 @@
 
 <JUCERPROJECT id="o8R8wn" name="projekt_zespo&#322;owy_2022" projectType="audioplug"
               useAppConfig="0" addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1"
-              cppLanguageStandard="17" companyName="Projekt_Zespolowy(Grupa 3)">
+              cppLanguageStandard="17" companyName="Projekt_Zespolowy(Grupa 3)"
+              displaySplashScreen="1">
   <MAINGROUP id="Iznoap" name="projekt_zespo&#322;owy_2022">
     <GROUP id="{6187CAC5-2625-67C2-09E1-23E3E92B2603}" name="Source">
       <FILE id="i28pZg" name="PluginProcessor.cpp" compile="1" resource="0"
