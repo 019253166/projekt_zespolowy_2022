@@ -449,8 +449,10 @@ bool Projekt_zespoowy_2022AudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* Projekt_zespoowy_2022AudioProcessor::createEditor()
 {
-    //return new Projekt_zespoowy_2022AudioProcessorEditor (*this);
-    return new juce::GenericAudioProcessorEditor(*this);
+	//wygląd wtyczki
+    return new Projekt_zespoowy_2022AudioProcessorEditor (*this);
+	//domyślny wygląd wtyczki
+    //return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
