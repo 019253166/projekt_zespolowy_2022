@@ -10,6 +10,157 @@
 
 #include <JuceHeader.h>
 
+namespace Parameters
+{
+	enum Names //uporządkowanie parametrów kompresorów po filtracji
+	{
+		//częstotliwości graniczne
+		Low_LowMid_Crossover_Freq, 
+		LowMid_HighMid_Crossover_Freq,
+		HighMid_High_Crossover_Freq,
+
+		Threshold_Low,
+		Threshold_LowMid,
+		Threshold_HighMid,
+		Threshold_High,
+
+		Attack_Low,
+		Attack_LowMid,
+		Attack_HighMid,
+		Attack_High,
+
+		Release_Low,
+		Release_LowMid,
+		Release_HighMid,
+		Release_High,
+
+		Ratio_Low,
+		Ratio_LowMid,
+		Ratio_HighMid,
+		Ratio_High,
+
+		Bypassed_Low,
+		Bypassed_LowMid,
+		Bypassed_HighMid,
+		Bypassed_High,
+
+		Mute_Low,
+		Mute_LowMid,
+		Mute_HighMid,
+		Mute_High,
+
+		Solo_Low,
+		Solo_LowMid,
+		Solo_HighMid,
+		Solo_High,
+
+		Knee_Low,
+		Knee_LowMid,
+		Knee_HighMid,
+		Knee_High,
+
+		Input_Gain,
+		Output_Gain,
+	};
+
+
+	inline const std::map<Names, juce::String>& GetParameters()
+	{
+		static std::map<Names, juce::String> parameters = 
+		{
+			{Low_LowMid_Crossover_Freq, "Low-LowMid Crossover (Hz)"},
+			{LowMid_HighMid_Crossover_Freq, "LowMid-HighMid Crossover (Hz)"},
+			{HighMid_High_Crossover_Freq, "HighMid-High Crossover (Hz)"},
+
+			{Threshold_Low, "Threshold Low (dB)"},
+			{Threshold_LowMid, "Threshold LowMid (dB)"},
+			{Threshold_HighMid, "Threshold HighMid (dB)"},
+			{Threshold_High, "Threshold High (dB)"},
+
+			{Attack_Low, "Attack Low (ms)"},
+			{Attack_LowMid, "Attack LowMid (ms)"},
+			{Attack_HighMid, "Attack HighMid (ms)"},
+			{Attack_High, "Attack High (ms)"},
+
+			{Release_Low, "Release Low (ms)"},
+			{Release_LowMid, "Release LowMid (ms)"},
+			{Release_HighMid, "Release HighMid (ms)"},
+			{Release_High, "Release High (ms)"},
+
+			{Ratio_Low, "Ratio Low"},
+			{Ratio_LowMid, "Ratio LowMid"},
+			{Ratio_HighMid, "Ratio HighMid"},
+			{Ratio_High, "Ratio High"},
+
+			{Bypassed_Low, "Bypassed Low"},
+			{Bypassed_LowMid, "Bypassed LowMid"},
+			{Bypassed_HighMid, "Bypassed HighMid"},
+			{Bypassed_High, "Bypassed High"},
+
+			{Mute_Low, "Mute Low"},
+			{Mute_LowMid, "Mute LowMid"},
+			{Mute_HighMid, "Mute HighMid"},
+			{Mute_High, "Mute High"},
+
+			{Solo_Low, "Solo Low"},
+			{Solo_LowMid, "Solo LowMid"},
+			{Solo_HighMid, "Solo HighMid"},
+			{Solo_High, "Solo High"},
+
+			{Knee_Low, "Knee Low"},
+			{Knee_LowMid, "Knee LowMid"},
+			{Knee_HighMid, "Knee HighMid"},
+			{Knee_High, "Knee High"},
+
+			{Input_Gain,"Input Gain (dB)"},
+			{Output_Gain,"Output Gain (dB)"},
+
+		};
+		return parameters;
+	}
+}
+
+struct CompressorBand 
+{
+    juce::AudioParameterFloat* attack{ nullptr };
+    juce::AudioParameterFloat* release{ nullptr };
+    juce::AudioParameterFloat* threshold{ nullptr };
+    juce::AudioParameterFloat* ratio{ nullptr };
+    juce::AudioParameterBool* bypassed{ nullptr };
+    juce::AudioParameterBool* mute{ nullptr };
+    juce::AudioParameterBool* solo{ nullptr };
+    juce::AudioParameterFloat* knee{ nullptr };
+
+    void prepare(const juce::dsp::ProcessSpec& spec)
+    {
+        compressor.prepare(spec);
+    }
+
+    void updateCompressorSettings()
+    {
+        compressor.setAttack(attack->get());
+        compressor.setRelease(release->get());
+        compressor.setThreshold(threshold->get());
+        compressor.setRatio(ratio->get());
+		compressor.setKnee(knee->get());
+    }
+
+    void process(juce::AudioBuffer<float>& buffer)
+    {
+        auto block = juce::dsp::AudioBlock<float>(buffer);
+        //przejmuje bufor i dodaje do niego próbki sygna³u
+        auto context = juce::dsp::ProcessContextReplacing<float>(block);
+        //odpowiada za wymianê próbek w buforze na te przetworzone przez kompresor
+
+        context.isBypassed = bypassed->get();
+        //jeœli bypass jest w³¹czony, nie rób nic
+
+        compressor.process(context);
+    }
+private:
+    juce::dsp::Compressor<float> compressor;
+    
+};
 //==============================================================================
 /**
 */
@@ -59,15 +210,42 @@ public:
     APVTS apvts{ *this, nullptr, "Parameters", createParameterLayout() };
 
 private:
+	/*
+	juce::dsp::Compressor<float> compressor;
+	juce::AudioParameterFloat* attack{ nullptr };
+	juce::AudioParameterFloat* release{ nullptr };
+	juce::AudioParameterFloat* threshold{ nullptr };
+	juce::AudioParameterFloat* ratio{ nullptr };
+	juce::AudioParameterBool* bypassed{ nullptr };
+	*/
+	//4 kompresory
+    std::array<CompressorBand, 4> compressors;
+	CompressorBand& lowComp = compressors[0];
+	CompressorBand& lowMidComp = compressors[1];
+	CompressorBand& highMidComp = compressors[2];
+	CompressorBand& highComp = compressors[3];
 
-    juce::dsp::Compressor<float> compressor;
+	//filtry Linkwitza-Rileya
+	using Filter = juce::dsp::LinkwitzRileyFilter<float>;
+	
+	Filter LP1, LP2, LP3;
+	Filter HP1, HP2, HP3;
 
-    juce::AudioParameterFloat* attack{ nullptr };
-    juce::AudioParameterFloat* release{ nullptr };
-    juce::AudioParameterFloat* threshold{ nullptr };
-    juce::AudioParameterChoice* ratio{ nullptr };
-    juce::AudioParameterBool* bypassed{ nullptr };
+	juce::AudioParameterFloat* lowLowMidCrossover{ nullptr };
+	juce::AudioParameterFloat* lowMidHighMidCrossover{ nullptr };
+	juce::AudioParameterFloat* highMidHighCrossover{ nullptr };
+	std::array<juce::AudioBuffer<float>, 4> filterBuffers;
 
+	//wzmocnienie wejścia i wyjścia
+	juce::dsp::Gain<float> inputGain, outputGain;
+	juce::AudioParameterFloat* inputGainParameter{ nullptr };
+	juce::AudioParameterFloat* outputGainParameter{ nullptr };
+
+
+
+	//testowanie odwróconym allpass
+	//Filter invAP;
+	//juce::AudioBuffer<float> invAPBuffer;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Projekt_zespoowy_2022AudioProcessor)
 };
