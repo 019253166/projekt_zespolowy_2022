@@ -52,7 +52,7 @@ void LookAndFeel::drawRotarySlider(juce::Graphics& g,
 
     auto enabled = slider.isEnabled();
 
-    g.setColour(enabled ? Colours::black : Colours::darkgrey);
+    g.setColour(Colours::black);
     g.fillEllipse(bounds);
 
     g.setColour(enabled ? Colours::darkcyan : Colours::grey);
@@ -157,7 +157,11 @@ void RotarySliderWithLabels::paint(juce::Graphics& g)
     auto range = getRange();
 
     auto sliderBounds = getSliderBounds();
+
     auto bounds = getLocalBounds();
+
+    g.setColour(Colours::white);
+    g.drawFittedText(getName(), bounds.removeFromTop(getTextHeight() + 2).removeFromLeft(getWidth() / 2 - 10), Justification::topRight, 1);
 
     getLookAndFeel().drawRotarySlider(g,
         sliderBounds.getX(),
@@ -201,13 +205,16 @@ juce::Rectangle<int> RotarySliderWithLabels::getSliderBounds() const
 {
     auto bounds = getLocalBounds();
 
+    bounds.removeFromTop(getTextHeight());
+
     auto size = juce::jmin(bounds.getWidth(), bounds.getHeight());
 
-    size -= getTextHeight() * 2;
+    size -= getTextHeight() * 1.5;
     juce::Rectangle<int> r;
     r.setSize(size, size);
     r.setCentre(bounds.getCentreX(), 0);
-    r.setY(2);
+    //r.setY(2);
+    r.setY(bounds.getY());
 
     return r;
 
@@ -264,11 +271,17 @@ GlobalControls::GlobalControls(juce::AudioProcessorValueTreeState& apvts)
         return getParam(apvts, parameters, name);
     };
 
-    inputGainSlider = std::make_unique<RSWL>(getParamHelper(Names::Input_Gain), "dB");
-    outputGainSlider = std::make_unique<RSWL>(getParamHelper(Names::Output_Gain), "dB");
-    lowCrossoverSlider = std::make_unique<RSWL>(getParamHelper(Names::Low_LowMid_Crossover_Freq), "Hz");
-    midCrossoverSlider = std::make_unique<RSWL>(getParamHelper(Names::LowMid_HighMid_Crossover_Freq), "Hz");
-    highCrossoverSlider = std::make_unique<RSWL>(getParamHelper(Names::HighMid_High_Crossover_Freq), "Hz");
+    auto& inputGainParam = getParamHelper(Names::Input_Gain);
+    auto& outputGainParam = getParamHelper(Names::Output_Gain);
+    auto& lowCrossoverParam = getParamHelper(Names::Low_LowMid_Crossover_Freq);
+    auto& midCrossoverParam = getParamHelper(Names::LowMid_HighMid_Crossover_Freq);
+    auto& highCrossoverParam = getParamHelper(Names::HighMid_High_Crossover_Freq);
+
+    inputGainSlider = std::make_unique<RSWL>(inputGainParam, "dB", "Input Gain");
+    outputGainSlider = std::make_unique<RSWL>(outputGainParam, "dB", "Output Gain");
+    lowCrossoverSlider = std::make_unique<RSWL>(lowCrossoverParam, "Hz", "Low Crossover");
+    midCrossoverSlider = std::make_unique<RSWL>(midCrossoverParam, "Hz", "Mid Crossover");
+    highCrossoverSlider = std::make_unique<RSWL>(highCrossoverParam, "Hz", "High Crossover");
 
     auto makeAttachmentHelper = [&parameters, &apvts](auto& attachment, const auto& name, auto& slider)
     {
@@ -281,11 +294,11 @@ GlobalControls::GlobalControls(juce::AudioProcessorValueTreeState& apvts)
     makeAttachmentHelper(midCrossoverSliderAttachment, Names::LowMid_HighMid_Crossover_Freq, *midCrossoverSlider);
     makeAttachmentHelper(highCrossoverSliderAttachment, Names::HighMid_High_Crossover_Freq, *highCrossoverSlider);
 
-    addLabelPairs(inputGainSlider->labels, getParamHelper(Names::Input_Gain), "dB");
-    addLabelPairs(outputGainSlider->labels, getParamHelper(Names::Output_Gain), "dB");
-    addLabelPairs(lowCrossoverSlider->labels, getParamHelper(Names::Low_LowMid_Crossover_Freq), "Hz");
-    addLabelPairs(midCrossoverSlider->labels, getParamHelper(Names::LowMid_HighMid_Crossover_Freq), "Hz");
-    addLabelPairs(highCrossoverSlider->labels, getParamHelper(Names::HighMid_High_Crossover_Freq), "Hz");
+    addLabelPairs(inputGainSlider->labels, inputGainParam, "dB");
+    addLabelPairs(outputGainSlider->labels, outputGainParam, "dB");
+    addLabelPairs(lowCrossoverSlider->labels, lowCrossoverParam, "Hz");
+    addLabelPairs(midCrossoverSlider->labels, midCrossoverParam, "Hz");
+    addLabelPairs(highCrossoverSlider->labels, highCrossoverParam, "Hz");
 
     addAndMakeVisible(*inputGainSlider);
     addAndMakeVisible(*outputGainSlider);
@@ -328,7 +341,6 @@ void GlobalControls::resized()
     flexBox.items.add(FlexItem(*highCrossoverSlider).withFlex(1.f));
     flexBox.items.add(spacer);
     flexBox.items.add(FlexItem(*outputGainSlider).withFlex(1.f));
-    flexBox.items.add(endCap);
 
     flexBox.performLayout(bounds);
 }
@@ -340,10 +352,10 @@ Projekt_zespoowy_2022AudioProcessorEditor::Projekt_zespoowy_2022AudioProcessorEd
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     addAndMakeVisible(globalControls);
-    addAndMakeVisible(bandLowControls);
-    addAndMakeVisible(bandLowMidControls);
-    addAndMakeVisible(bandHighMidControls);
-    addAndMakeVisible(bandHighControls);
+    //addAndMakeVisible(bandLowControls);
+    //addAndMakeVisible(bandLowMidControls);
+    //addAndMakeVisible(bandHighMidControls);
+    //addAndMakeVisible(bandHighControls);
     setSize (windowWidth, windowHeight);
 }
 
@@ -369,7 +381,7 @@ void Projekt_zespoowy_2022AudioProcessorEditor::resized()
     auto bounds = getLocalBounds();
     globalControls.setBounds(bounds.removeFromTop(windowHeight / 6));
     bandLowControls.setBounds(bounds.removeFromLeft(windowWidth / 4));
-    bandLowMidControls.setBounds(bounds.removeFromLeft(windowWidth / 4));
-    bandHighMidControls.setBounds(bounds.removeFromLeft(windowWidth / 4));
-    bandHighControls.setBounds(bounds.removeFromLeft(windowWidth / 4));
+    //bandLowMidControls.setBounds(bounds.removeFromLeft(windowWidth / 4));
+    //bandHighMidControls.setBounds(bounds.removeFromLeft(windowWidth / 4));
+    //bandHighControls.setBounds(bounds.removeFromLeft(windowWidth / 4));
 }
