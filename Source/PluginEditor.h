@@ -147,6 +147,9 @@ void addLabelPairs(Labels& labels, const ParamType& param, const SuffixType& suf
 struct BandControls : juce::Component
 {
     BandControls();
+
+    void paint(juce::Graphics& g) override;
+
     void resized() override;
 
 private:
@@ -189,8 +192,9 @@ private:
     // access the processor object that created it.
     Projekt_zespoowy_2022AudioProcessor& audioProcessor;
 
-    Placeholder /*globalControls,*/ bandLowControls, bandLowMidControls, bandHighMidControls, bandHighControls;
+   // Placeholder /*globalControls,*//* bandLowControls,*/ bandLowMidControls, bandHighMidControls, bandHighControls;
     GlobalControls globalControls {audioProcessor.apvts};
+    BandControls bandLowControls, bandLowMidControls, bandHighMidControls, bandHighControls;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Projekt_zespoowy_2022AudioProcessorEditor)
 };

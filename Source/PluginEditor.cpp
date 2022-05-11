@@ -261,6 +261,69 @@ Placeholder::Placeholder()
 
 //==============================================================================
 
+BandControls::BandControls()
+{
+    addAndMakeVisible(attackSlider);
+    addAndMakeVisible(releaseSlider);
+    addAndMakeVisible(threshSlider);
+    addAndMakeVisible(ratioSlider);
+    addAndMakeVisible(kneeSlider);
+};
+
+void BandControls::paint(juce::Graphics& g)
+{
+    using namespace juce;
+    auto bounds = getLocalBounds();
+    g.setColour(Colours::darkgrey);
+    g.fillAll();
+
+    bounds.reduce(1, 1);
+    g.setColour(Colours::black);
+    g.fillRoundedRectangle(bounds.toFloat(), 3);
+}
+
+void BandControls::resized()
+{
+    auto bounds = getLocalBounds().reduced(4);
+    using namespace juce;
+
+
+
+    FlexBox flexRow1;
+    flexRow1.flexDirection = FlexBox::Direction::row;
+    flexRow1.flexWrap = FlexBox::Wrap::noWrap;
+
+    auto spacer = FlexItem().withWidth(4);
+    auto endCap = FlexItem().withWidth(6);
+
+    flexRow1.items.add(endCap);
+    flexRow1.items.add(FlexItem(attackSlider).withFlex(1.f));
+    flexRow1.items.add(spacer);
+    flexRow1.items.add(FlexItem(releaseSlider).withFlex(1.f));
+
+    flexRow1.performLayout(bounds.removeFromTop(windowHeight * 5 / 24));
+
+    FlexBox flexRow2;
+    flexRow2.flexDirection = FlexBox::Direction::row;
+    flexRow2.flexWrap = FlexBox::Wrap::noWrap;
+    flexRow2.items.add(endCap);
+    flexRow2.items.add(FlexItem(threshSlider).withFlex(1.f));
+    flexRow2.items.add(spacer);
+    flexRow2.items.add(FlexItem(ratioSlider).withFlex(1.f));
+
+    flexRow2.performLayout(bounds.removeFromTop(windowHeight * 5 / 24));
+
+    FlexBox flexRow3;
+    flexRow3.flexDirection = FlexBox::Direction::row;
+    flexRow3.flexWrap = FlexBox::Wrap::noWrap;
+    flexRow3.items.add(endCap);
+    flexRow3.items.add(FlexItem(kneeSlider).withFlex(1.f));
+
+    flexRow3.performLayout(bounds.removeFromTop(windowHeight * 5 / 24));
+}
+
+//==============================================================================
+
 GlobalControls::GlobalControls(juce::AudioProcessorValueTreeState& apvts)
 {
     using namespace Parameters;
@@ -352,17 +415,18 @@ Projekt_zespoowy_2022AudioProcessorEditor::Projekt_zespoowy_2022AudioProcessorEd
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     addAndMakeVisible(globalControls);
-    //addAndMakeVisible(bandLowControls);
-    //addAndMakeVisible(bandLowMidControls);
-    //addAndMakeVisible(bandHighMidControls);
-    //addAndMakeVisible(bandHighControls);
+    addAndMakeVisible(bandLowControls);
+    addAndMakeVisible(bandLowMidControls);
+    addAndMakeVisible(bandHighMidControls);
+    addAndMakeVisible(bandHighControls);
+
     setSize (windowWidth, windowHeight);
 }
 
 Projekt_zespoowy_2022AudioProcessorEditor::~Projekt_zespoowy_2022AudioProcessorEditor()
 {
 }
-
+ 
 //==============================================================================
 void Projekt_zespoowy_2022AudioProcessorEditor::paint (juce::Graphics& g)
 {
@@ -370,8 +434,6 @@ void Projekt_zespoowy_2022AudioProcessorEditor::paint (juce::Graphics& g)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 
     g.setColour (juce::Colours::white);
-    g.setFont (15.0f);
-    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
 }
 
 void Projekt_zespoowy_2022AudioProcessorEditor::resized()
@@ -381,7 +443,7 @@ void Projekt_zespoowy_2022AudioProcessorEditor::resized()
     auto bounds = getLocalBounds();
     globalControls.setBounds(bounds.removeFromTop(windowHeight / 6));
     bandLowControls.setBounds(bounds.removeFromLeft(windowWidth / 4));
-    //bandLowMidControls.setBounds(bounds.removeFromLeft(windowWidth / 4));
-    //bandHighMidControls.setBounds(bounds.removeFromLeft(windowWidth / 4));
-    //bandHighControls.setBounds(bounds.removeFromLeft(windowWidth / 4));
+    bandLowMidControls.setBounds(bounds.removeFromLeft(windowWidth / 4));
+    bandHighMidControls.setBounds(bounds.removeFromLeft(windowWidth / 4));
+    bandHighControls.setBounds(bounds.removeFromLeft(windowWidth / 4));
 }
