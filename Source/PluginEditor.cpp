@@ -161,7 +161,7 @@ void RotarySliderWithLabels::paint(juce::Graphics& g)
     auto bounds = getLocalBounds();
 
     g.setColour(Colours::white);
-    g.drawFittedText(getName(), bounds.removeFromTop(getTextHeight() + 2).removeFromLeft(getWidth() / 2 - 10), Justification::topRight, 1);
+    g.drawFittedText(getName(), bounds.removeFromTop(getTextHeight() + 2).removeFromLeft(getWidth() / 2 - 15), Justification::topRight, 1);
 
     getLookAndFeel().drawRotarySlider(g,
         sliderBounds.getX(),
@@ -253,6 +253,14 @@ juce::String RotarySliderWithLabels::getDisplayString() const
     return str;
 }
 
+void RotarySliderWithLabels::changeParam(juce::RangedAudioParameter* p)
+{
+    param = p;
+    repaint();
+}
+
+//==============================================================================
+
 Placeholder::Placeholder()
 {
     juce::Random r;
@@ -261,13 +269,51 @@ Placeholder::Placeholder()
 
 //==============================================================================
 
-BandControls::BandControls()
+BandControls::BandControls(juce::AudioProcessorValueTreeState& apv) : apvts(apv),
+attackLowSlider(nullptr, "ms", "Attack"),
+releaseLowSlider(nullptr, "ms", "Release"),
+threshLowSlider(nullptr, "dB", "Thresh"),
+ratioLowSlider(nullptr, "", "Ratio"),
+kneeLowSlider(nullptr, "", "Knee")
 {
-    addAndMakeVisible(attackSlider);
-    addAndMakeVisible(releaseSlider);
-    addAndMakeVisible(threshSlider);
-    addAndMakeVisible(ratioSlider);
-    addAndMakeVisible(kneeSlider);
+    using namespace Parameters;
+    const auto& parameters = GetParameters();
+
+    auto getParamHelper = [&parameters, &apvts = this->apvts](const auto& name) -> auto&
+    {
+        return getParam(apvts, parameters, name);
+    };
+
+    attackLowSlider.changeParam(&getParamHelper(Names::Attack_Low));
+    releaseLowSlider.changeParam(&getParamHelper(Names::Release_Low));
+    threshLowSlider.changeParam(&getParamHelper(Names::Threshold_Low));
+    ratioLowSlider.changeParam(&getParamHelper(Names::Ratio_Low));
+    kneeLowSlider.changeParam(&getParamHelper(Names::Knee_Low));
+
+    addLabelPairs(attackLowSlider.labels, getParamHelper(Names::Attack_Low), "ms");
+    addLabelPairs(releaseLowSlider.labels, getParamHelper(Names::Release_Low), "ms");
+    addLabelPairs(threshLowSlider.labels, getParamHelper(Names::Threshold_Low), "dB");
+    addLabelPairs(kneeLowSlider.labels, getParamHelper(Names::Knee_Low), "");
+
+    ratioLowSlider.labels.add({ 0.f, "1:1" });
+    ratioLowSlider.labels.add({ 1.f, "30:1" });
+
+    auto makeAttachmentHelper = [&parameters, &apvts = this->apvts](auto& attachment, const auto& name, auto& slider)
+    {
+        makeAttachment(attachment, apvts, parameters, name, slider);
+    };
+
+    makeAttachmentHelper(attackLowSliderAttachment, Names::Attack_Low, attackLowSlider);
+    makeAttachmentHelper(releaseLowSliderAttachment, Names::Release_Low, releaseLowSlider);
+    makeAttachmentHelper(threshLowSliderAttachment, Names::Threshold_Low, threshLowSlider);
+    makeAttachmentHelper(ratioLowSliderAttachment, Names::Ratio_Low, ratioLowSlider);
+    makeAttachmentHelper(kneeLowSliderAttachment, Names::Knee_Low, kneeLowSlider);
+
+    addAndMakeVisible(attackLowSlider);
+    addAndMakeVisible(releaseLowSlider);
+    addAndMakeVisible(threshLowSlider);
+    addAndMakeVisible(ratioLowSlider);
+    addAndMakeVisible(kneeLowSlider);
 };
 
 void BandControls::paint(juce::Graphics& g)
@@ -284,10 +330,9 @@ void BandControls::paint(juce::Graphics& g)
 
 void BandControls::resized()
 {
+    {
     auto bounds = getLocalBounds().reduced(4);
     using namespace juce;
-
-
 
     FlexBox flexRow1;
     flexRow1.flexDirection = FlexBox::Direction::row;
@@ -296,30 +341,33 @@ void BandControls::resized()
     auto spacer = FlexItem().withWidth(4);
     auto endCap = FlexItem().withWidth(6);
 
-    flexRow1.items.add(endCap);
-    flexRow1.items.add(FlexItem(attackSlider).withFlex(1.f));
-    flexRow1.items.add(spacer);
-    flexRow1.items.add(FlexItem(releaseSlider).withFlex(1.f));
+    bounds.removeFromTop(windowHeight * 5 / 24);
 
-    flexRow1.performLayout(bounds.removeFromTop(windowHeight * 5 / 24));
+    flexRow1.items.add(endCap);
+    flexRow1.items.add(FlexItem(attackLowSlider).withFlex(1.f));
+    flexRow1.items.add(spacer);
+    flexRow1.items.add(FlexItem(releaseLowSlider).withFlex(1.f));
+
+    flexRow1.performLayout(bounds.removeFromTop(windowHeight * 5 / 24).reduced(5));
 
     FlexBox flexRow2;
     flexRow2.flexDirection = FlexBox::Direction::row;
     flexRow2.flexWrap = FlexBox::Wrap::noWrap;
     flexRow2.items.add(endCap);
-    flexRow2.items.add(FlexItem(threshSlider).withFlex(1.f));
+    flexRow2.items.add(FlexItem(threshLowSlider).withFlex(1.f));
     flexRow2.items.add(spacer);
-    flexRow2.items.add(FlexItem(ratioSlider).withFlex(1.f));
+    flexRow2.items.add(FlexItem(ratioLowSlider).withFlex(1.f));
 
-    flexRow2.performLayout(bounds.removeFromTop(windowHeight * 5 / 24));
+    flexRow2.performLayout(bounds.removeFromTop(windowHeight * 5 / 24).reduced(5));
 
     FlexBox flexRow3;
     flexRow3.flexDirection = FlexBox::Direction::row;
     flexRow3.flexWrap = FlexBox::Wrap::noWrap;
     flexRow3.items.add(endCap);
-    flexRow3.items.add(FlexItem(kneeSlider).withFlex(1.f));
+    flexRow3.items.add(FlexItem(kneeLowSlider).withFlex(1.f));
 
-    flexRow3.performLayout(bounds.removeFromTop(windowHeight * 5 / 24));
+    flexRow3.performLayout(bounds.removeFromTop(windowHeight * 5 / 24).reduced(5));
+    }
 }
 
 //==============================================================================
@@ -340,11 +388,11 @@ GlobalControls::GlobalControls(juce::AudioProcessorValueTreeState& apvts)
     auto& midCrossoverParam = getParamHelper(Names::LowMid_HighMid_Crossover_Freq);
     auto& highCrossoverParam = getParamHelper(Names::HighMid_High_Crossover_Freq);
 
-    inputGainSlider = std::make_unique<RSWL>(inputGainParam, "dB", "Input Gain");
-    outputGainSlider = std::make_unique<RSWL>(outputGainParam, "dB", "Output Gain");
-    lowCrossoverSlider = std::make_unique<RSWL>(lowCrossoverParam, "Hz", "Low Crossover");
-    midCrossoverSlider = std::make_unique<RSWL>(midCrossoverParam, "Hz", "Mid Crossover");
-    highCrossoverSlider = std::make_unique<RSWL>(highCrossoverParam, "Hz", "High Crossover");
+    inputGainSlider = std::make_unique<RSWL>(&inputGainParam, "dB", "Input Gain");
+    outputGainSlider = std::make_unique<RSWL>(&outputGainParam, "dB", "Output Gain");
+    lowCrossoverSlider = std::make_unique<RSWL>(&lowCrossoverParam, "Hz", "Low Crossover");
+    midCrossoverSlider = std::make_unique<RSWL>(&midCrossoverParam, "Hz", "Mid Crossover");
+    highCrossoverSlider = std::make_unique<RSWL>(&highCrossoverParam, "Hz", "High Crossover");
 
     auto makeAttachmentHelper = [&parameters, &apvts](auto& attachment, const auto& name, auto& slider)
     {
@@ -414,6 +462,8 @@ Projekt_zespoowy_2022AudioProcessorEditor::Projekt_zespoowy_2022AudioProcessorEd
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
+    setLookAndFeel(&lnf);
+
     addAndMakeVisible(globalControls);
     addAndMakeVisible(bandLowControls);
     addAndMakeVisible(bandLowMidControls);
@@ -425,6 +475,7 @@ Projekt_zespoowy_2022AudioProcessorEditor::Projekt_zespoowy_2022AudioProcessorEd
 
 Projekt_zespoowy_2022AudioProcessorEditor::~Projekt_zespoowy_2022AudioProcessorEditor()
 {
+    setLookAndFeel(nullptr);
 }
  
 //==============================================================================

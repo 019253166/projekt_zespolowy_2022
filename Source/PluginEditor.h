@@ -28,20 +28,20 @@ struct LookAndFeel : juce::LookAndFeel_V4
 
 struct RotarySliderWithLabels : juce::Slider
 {
-    RotarySliderWithLabels(juce::RangedAudioParameter& rap, const juce::String& unitSuffix, const juce::String& title /*= "NO TITLE"*/) :
+    RotarySliderWithLabels(juce::RangedAudioParameter* rap, const juce::String& unitSuffix, const juce::String& title /*= "NO TITLE"*/) :
         juce::Slider(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag,
             juce::Slider::TextEntryBoxPosition::NoTextBox),
-        param(&rap),
+        param(rap),
         suffix(unitSuffix)
     {
         setName(title);
-        setLookAndFeel(&lnf);
+      //  setLookAndFeel(&lnf);
     }
 
-    ~RotarySliderWithLabels()
-    {
-        setLookAndFeel(nullptr);
-    }
+    //~RotarySliderWithLabels()
+    //{
+    //    setLookAndFeel(nullptr);
+    //}
 
     struct LabelPos
     {
@@ -55,8 +55,11 @@ struct RotarySliderWithLabels : juce::Slider
     juce::Rectangle<int> getSliderBounds() const;
     int getTextHeight() const { return 14; }
     juce::String getDisplayString() const;
+
+    void changeParam(juce::RangedAudioParameter* p);
+
 private:
-    LookAndFeel lnf;
+    //LookAndFeel lnf;
 
     juce::RangedAudioParameter* param;
     juce::String suffix;
@@ -146,14 +149,37 @@ void addLabelPairs(Labels& labels, const ParamType& param, const SuffixType& suf
 
 struct BandControls : juce::Component
 {
-    BandControls();
+    BandControls(juce::AudioProcessorValueTreeState& apvts);
 
     void paint(juce::Graphics& g) override;
 
     void resized() override;
 
 private:
-    RotarySlider attackSlider, releaseSlider, threshSlider, ratioSlider, kneeSlider;
+    juce::AudioProcessorValueTreeState& apvts;
+    RotarySliderWithLabels attackLowSlider, releaseLowSlider, threshLowSlider, ratioLowSlider, kneeLowSlider;
+
+    using Attachment = juce::AudioProcessorValueTreeState::SliderAttachment;
+    std::unique_ptr<Attachment> attackLowSliderAttachment,
+                                    attackLowMidSliderAttachment,
+                                    attackHighMidSliderAttachment,
+                                    attackHighSliderAttachment,
+                                releaseLowSliderAttachment,
+                                    releaseLowMidSliderAttachment,
+                                    releaseHighMidSliderAttachment,
+                                    releaseHighSliderAttachment,
+                                threshLowSliderAttachment,
+                                    threshLowMidSliderAttachment,
+                                    threshHighMidSliderAttachment,
+                                    threshHighSliderAttachment,
+                                ratioLowSliderAttachment,
+                                    ratioLowMidSliderAttachment,
+                                    ratioHighMidSliderAttachment,
+                                    ratioHighSliderAttachment,
+                                kneeLowSliderAttachment,
+                                    kneeLowMidSliderAttachment,
+                                    kneeHighMidSliderAttachment,
+                                    kneeHighSliderAttachment;
 };
 
 struct GlobalControls : juce::Component
@@ -188,13 +214,14 @@ public:
     void resized() override;
 
 private:
+    LookAndFeel lnf;
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     Projekt_zespoowy_2022AudioProcessor& audioProcessor;
 
    // Placeholder /*globalControls,*//* bandLowControls,*/ bandLowMidControls, bandHighMidControls, bandHighControls;
     GlobalControls globalControls {audioProcessor.apvts};
-    BandControls bandLowControls, bandLowMidControls, bandHighMidControls, bandHighControls;
+    BandControls bandLowControls{ audioProcessor.apvts }, bandLowMidControls{ audioProcessor.apvts }, bandHighMidControls{ audioProcessor.apvts }, bandHighControls{ audioProcessor.apvts };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Projekt_zespoowy_2022AudioProcessorEditor)
 };
