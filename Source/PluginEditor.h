@@ -109,7 +109,7 @@ struct AnalyzerPathGenerator
         float negativeInfinity)
     {
         auto top = fftBounds.getY();
-        auto bottom = fftBounds.getHeight();
+        auto bottom = fftBounds.getBottom();
         auto width = fftBounds.getWidth();
 
         int numBins = (int)fftSize / 2;
@@ -121,7 +121,7 @@ struct AnalyzerPathGenerator
         {
             return juce::jmap(v,
                 negativeInfinity, 0.f,
-                float(bottom + 10), top);
+                bottom, top);
         };
 
         auto y = map(renderData[0]);
@@ -176,6 +176,10 @@ struct PathProducer
     }
     void process(juce::Rectangle<float> fftBounds, double sampleRate);
     juce::Path getPath() { return leftChannelFFTPath; }
+
+    void updateNegativeInfinity(float nf) {
+        negativeInfinity = nf;
+    }
 private:
     SingleChannelSampleFifo<Projekt_zespoowy_2022AudioProcessor::BlockType>* leftChannelFifo;
 
@@ -186,6 +190,8 @@ private:
     AnalyzerPathGenerator<juce::Path> pathProducer;
 
     juce::Path leftChannelFFTPath;
+
+    float negativeInfinity{ -48.f };
 };
 
 struct SpectrumAnalyzer : juce::Component,

@@ -51,13 +51,13 @@ void SpectrumAnalyzer::paint(juce::Graphics& g)
     if (shouldShowFFTAnalysis)
     {
         auto leftChannelFFTPath = leftPathProducer.getPath();
-        leftChannelFFTPath.applyTransform(AffineTransform().translation(responseArea.getX(), responseArea.getY()));
+        leftChannelFFTPath.applyTransform(AffineTransform().translation(responseArea.getX(), 0));
 
         g.setColour(Colour(97u, 18u, 167u)); //purple-
         g.strokePath(leftChannelFFTPath, PathStrokeType(1.f));
 
         auto rightChannelFFTPath = rightPathProducer.getPath();
-        rightChannelFFTPath.applyTransform(AffineTransform().translation(responseArea.getX(), responseArea.getY()));
+        rightChannelFFTPath.applyTransform(AffineTransform().translation(responseArea.getX(), 0));
 
         g.setColour(Colour(215u, 201u, 134u));
         g.strokePath(rightChannelFFTPath, PathStrokeType(1.f));
@@ -224,6 +224,10 @@ void SpectrumAnalyzer::drawTextLabels(juce::Graphics& g)
 void SpectrumAnalyzer::resized()
 {
     using namespace juce;
+    auto fftBounds = getAnalysisArea().toFloat();
+    auto negInf = jmap(getLocalBounds().toFloat().getBottom(), fftBounds.getBottom(), fftBounds.getY(), -48.f, 0.f);
+    leftPathProducer.updateNegativeInfinity(negInf);
+    rightPathProducer.updateNegativeInfinity(negInf);
 }
 
 void SpectrumAnalyzer::parameterValueChanged(int parameterIndex, float newValue)
@@ -240,15 +244,23 @@ void PathProducer::process(juce::Rectangle<float> fftBounds, double sampleRate)
         {
             auto size = tempIncomingBuffer.getNumSamples();
 
-            juce::FloatVectorOperations::copy(monoBuffer.getWritePointer(0, 0),
-                monoBuffer.getReadPointer(0, size),
-                monoBuffer.getNumSamples() - size);
+            jassert(size <= monoBuffer.getNumSamples());
+            size = juce::jmin(size, monoBuffer.getNumSamples());
+
+            auto writePointer = monoBuffer.getWritePointer(0, 0);
+            auto readPointer = monoBuffer.getReadPointer(0, size);
+
+            std::copy(readPointer, readPointer + (monoBuffer.getNumSamples() - size), writePointer);
+
+            //juce::FloatVectorOperations::copy(monoBuffer.getWritePointer(0, 0),
+            //    monoBuffer.getReadPointer(0, size),
+            //    monoBuffer.getNumSamples() - size);
 
             juce::FloatVectorOperations::copy(monoBuffer.getWritePointer(0, monoBuffer.getNumSamples() - size),
                 tempIncomingBuffer.getReadPointer(0, 0),
                 size);
 
-            leftChannelFFTDataGenerator.produceFFTDataForRendering(monoBuffer, -48.f);
+            leftChannelFFTDataGenerator.produceFFTDataForRendering(monoBuffer, negativeInfinity);
         }
     }
 
@@ -260,7 +272,7 @@ void PathProducer::process(juce::Rectangle<float> fftBounds, double sampleRate)
         std::vector<float> fftData;
         if (leftChannelFFTDataGenerator.getFFTData(fftData))
         {
-            pathProducer.generatePath(fftData, fftBounds, fftSize, binWidth, -48.f);
+            pathProducer.generatePath(fftData, fftBounds, fftSize, binWidth, negativeInfinity);
         }
     }
 
@@ -275,6 +287,7 @@ void SpectrumAnalyzer::timerCallback()
     if (shouldShowFFTAnalysis)
     {
         auto fftBounds = getAnalysisArea().toFloat();
+        fftBounds.setBottom(getLocalBounds().getBottom());
         auto sampleRate = audioProcessor.getSampleRate();
 
         leftPathProducer.process(fftBounds, sampleRate);
@@ -818,7 +831,7 @@ void Projekt_zespoowy_2022AudioProcessorEditor::resized()
     // subcomponents in your editor..
     auto bounds = getLocalBounds();
     globalControls.setBounds(bounds.removeFromTop(windowHeight / 6));
-    analyzer.setBounds(bounds.removeFromTop(windowHeight / 3));
+    analyzer.setBounds(bounds.removeFromTop(windowHeight / 3).reduced(2));
     bandLowControls.setBounds(bounds.removeFromLeft(windowWidth / 4));
     bandLowMidControls.setBounds(bounds.removeFromLeft(windowWidth / 4));
     bandHighMidControls.setBounds(bounds.removeFromLeft(windowWidth / 4));

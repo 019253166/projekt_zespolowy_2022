@@ -209,6 +209,10 @@ void Projekt_zespoowy_2022AudioProcessor::prepareToPlay(double sampleRate, int s
 	{
 		buffer.setSize(spec.numChannels, samplesPerBlock);
 	}
+
+	leftChannelFifo.prepare(samplesPerBlock);
+	rightChannelFifo.prepare(samplesPerBlock);
+
 }
 void Projekt_zespoowy_2022AudioProcessor::releaseResources()
 {
@@ -256,6 +260,9 @@ void Projekt_zespoowy_2022AudioProcessor::processBlock (juce::AudioBuffer<float>
     // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
+
+	leftChannelFifo.update(buffer);
+	rightChannelFifo.update(buffer);
 
 	for (auto& compressor : compressors)
 		compressor.updateCompressorSettings();
