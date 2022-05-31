@@ -120,7 +120,7 @@ struct AnalyzerPathGenerator
         auto map = [bottom, top, negativeInfinity](float v)
         {
             return juce::jmap(v,
-                negativeInfinity, 0.f,
+                negativeInfinity, 12.f,
                 bottom, top);
         };
 
@@ -132,7 +132,7 @@ struct AnalyzerPathGenerator
 
         p.startNewSubPath(0, y);
 
-        const int pathResolution = 2; //you can draw line-to's every 'pathResolution' pixels.
+        const int pathResolution = 4; //you can draw line-to's every 'pathResolution' pixels.
 
         for (int binNum = 1; binNum < numBins; binNum += pathResolution)
         {
@@ -241,6 +241,12 @@ private:
     juce::Rectangle<int> getAnalysisArea();
 
     PathProducer leftPathProducer, rightPathProducer;
+ 
+    void drawCrossover(juce::Graphics& g);
+
+    juce::AudioParameterFloat* lowCrossoverParam{ nullptr };
+    juce::AudioParameterFloat* midCrossoverParam{ nullptr };
+    juce::AudioParameterFloat* highCrossoverParam{ nullptr };
 };
 
 struct LookAndFeel : juce::LookAndFeel_V4

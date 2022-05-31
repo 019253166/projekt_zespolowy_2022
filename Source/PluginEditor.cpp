@@ -24,6 +24,18 @@ SpectrumAnalyzer::SpectrumAnalyzer(Projekt_zespoowy_2022AudioProcessor& p) :
         param->addListener(this);
     }
 
+    using namespace Parameters;
+    const auto& paramNames = GetParameters();
+    auto floatHelper = [&apvts = audioProcessor.apvts, &paramNames](auto& parameter, const auto& parameterName)
+    {
+        parameter = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(paramNames.at(parameterName)));
+        jassert(parameter != nullptr);
+
+    };
+
+    floatHelper(lowCrossoverParam, Names::Low_LowMid_Crossover_Freq);
+    floatHelper(midCrossoverParam, Names::LowMid_HighMid_Crossover_Freq);
+    floatHelper(highCrossoverParam, Names::HighMid_High_Crossover_Freq);
 
     startTimerHz(60);
 }
@@ -63,21 +75,46 @@ void SpectrumAnalyzer::paint(juce::Graphics& g)
         g.strokePath(rightChannelFFTPath, PathStrokeType(1.f));
     }
 
-    Path border;
+    //Path border;
 
-    border.setUsingNonZeroWinding(false);
+    //border.setUsingNonZeroWinding(false);
 
-    border.addRoundedRectangle(getRenderArea(), 4);
-    border.addRectangle(getLocalBounds());
+    //border.addRoundedRectangle(getRenderArea(), 4);
+    //border.addRectangle(getLocalBounds());
 
-    g.setColour(Colours::black);
+    //g.setColour(Colours::black);
 
-    g.fillPath(border);
+    //g.fillPath(border);
+
+    drawCrossover(g);
 
     drawTextLabels(g);
 
+    //g.setcolour(colours::orange);
+    //g.drawroundedrectangle(getrenderarea().tofloat(), 4.f, 1.f);
+}
+
+void SpectrumAnalyzer::drawCrossover(juce::Graphics& g)
+{
+    using namespace juce;
+    auto renderArea = getAnalysisArea();
+
+    const auto top = renderArea.getY();
+    const auto bottom = renderArea.getBottom();
+
+    auto mapX = [left = renderArea.getX(), width = renderArea.getWidth()](float f)
+    {
+        auto normX = juce::mapFromLog10(f, 20.f, 20000.f);
+        return left + width * normX;
+    };
+
+    auto lowX = mapX(lowCrossoverParam->get());
     g.setColour(Colours::orange);
-    g.drawRoundedRectangle(getRenderArea().toFloat(), 4.f, 1.f);
+    g.drawVerticalLine(lowX, top, bottom);
+    auto midX = mapX(midCrossoverParam->get());
+    g.drawVerticalLine(midX, top, bottom);
+    auto highX = mapX(highCrossoverParam->get());
+    g.drawVerticalLine(highX, top, bottom);
 }
 
 std::vector<float> SpectrumAnalyzer::getFrequencies()
@@ -95,7 +132,7 @@ std::vector<float> SpectrumAnalyzer::getGains()
 {
     return std::vector<float>
     {
-        -24, -12, 0, 12, 24
+        -48, -36, -24, -12, 0, 12
     };
 }
 
@@ -135,7 +172,7 @@ void SpectrumAnalyzer::drawBackgroundGrid(juce::Graphics& g)
 
     for (auto gDb : gain)
     {
-        auto y = jmap(gDb, -24.f, 24.f, float(bottom), float(top));
+        auto y = jmap(gDb, -48.f, 12.f, float(bottom), float(top));
 
         g.setColour(gDb == 0.f ? Colour(0u, 172u, 1u) : Colours::darkgrey);
         g.drawHorizontalLine(y, left, right);
@@ -192,7 +229,7 @@ void SpectrumAnalyzer::drawTextLabels(juce::Graphics& g)
 
     for (auto gDb : gain)
     {
-        auto y = jmap(gDb, -24.f, 24.f, float(bottom), float(top));
+        auto y = jmap(gDb, -48.f, 12.f, float(bottom), float(top));
 
         String str;
         if (gDb > 0)
@@ -210,13 +247,13 @@ void SpectrumAnalyzer::drawTextLabels(juce::Graphics& g)
 
         g.drawFittedText(str, r, juce::Justification::centredLeft, 1);
 
-        str.clear();
-        str << (gDb - 24.f);
+        //str.clear();
+        //str << (gDb - 24.f);
 
         r.setX(1);
-        textWidth = g.getCurrentFont().getStringWidth(str);
-        r.setSize(textWidth, fontHeight);
-        g.setColour(Colours::lightgrey);
+        //textWidth = g.getCurrentFont().getStringWidth(str);
+        //r.setSize(textWidth, fontHeight);
+        //g.setColour(Colours::lightgrey);
         g.drawFittedText(str, r, juce::Justification::centredLeft, 1);
     }
 }
@@ -225,7 +262,7 @@ void SpectrumAnalyzer::resized()
 {
     using namespace juce;
     auto fftBounds = getAnalysisArea().toFloat();
-    auto negInf = jmap(getLocalBounds().toFloat().getBottom(), fftBounds.getBottom(), fftBounds.getY(), -48.f, 0.f);
+    auto negInf = jmap(getLocalBounds().toFloat().getBottom(), fftBounds.getBottom(), fftBounds.getY(), -48.f, 12.f);
     leftPathProducer.updateNegativeInfinity(negInf);
     rightPathProducer.updateNegativeInfinity(negInf);
 }
@@ -831,7 +868,7 @@ void Projekt_zespoowy_2022AudioProcessorEditor::resized()
     // subcomponents in your editor..
     auto bounds = getLocalBounds();
     globalControls.setBounds(bounds.removeFromTop(windowHeight / 6));
-    analyzer.setBounds(bounds.removeFromTop(windowHeight / 3).reduced(2));
+    analyzer.setBounds(bounds.removeFromTop(windowHeight / 3));
     bandLowControls.setBounds(bounds.removeFromLeft(windowWidth / 4));
     bandLowMidControls.setBounds(bounds.removeFromLeft(windowWidth / 4));
     bandHighMidControls.setBounds(bounds.removeFromLeft(windowWidth / 4));
