@@ -786,6 +786,375 @@ void BandControls::resized()
     }
 }
 
+BandLMControls::BandLMControls(juce::AudioProcessorValueTreeState& apv) : apvts(apv),
+attackLowMidSlider(nullptr, "ms", "Attack"),
+releaseLowMidSlider(nullptr, "ms", "Release"),
+//threshLowMidSlider(nullptr, "dB", "Thresh"),
+ratioLowMidSlider(nullptr, ": 1", "Ratio"),
+kneeLowMidSlider(nullptr, "", "Knee")
+{
+    using namespace Parameters;
+    const auto& parameters = GetParameters();
+
+    auto getParamHelper = [&parameters, &apvts = this->apvts](const auto& name) -> auto&
+    {
+        return getParam(apvts, parameters, name);
+    };
+
+    attackLowMidSlider.changeParam(&getParamHelper(Names::Attack_LowMid));
+    releaseLowMidSlider.changeParam(&getParamHelper(Names::Release_LowMid));
+    //threshLowMidSlider.changeParam(&getParamHelper(Names::Threshold_LowMid));
+    ratioLowMidSlider.changeParam(&getParamHelper(Names::Ratio_LowMid));
+    kneeLowMidSlider.changeParam(&getParamHelper(Names::Knee_LowMid));
+
+    addLabelPairs(attackLowMidSlider.labels, getParamHelper(Names::Attack_LowMid), "ms");
+    addLabelPairs(releaseLowMidSlider.labels, getParamHelper(Names::Release_LowMid), "ms");
+    //addLabelPairs(threshLowMidSlider.labels, getParamHelper(Names::Threshold_LowMid), "dB");
+    addLabelPairs(kneeLowMidSlider.labels, getParamHelper(Names::Knee_LowMid), "");
+
+    ratioLowMidSlider.labels.add({ 0.f, "1:1" });
+    ratioLowMidSlider.labels.add({ 1.f, "30:1" });
+
+    auto makeAttachmentHelper = [&parameters, &apvts = this->apvts](auto& attachment, const auto& name, auto& slider)
+    {
+        makeAttachment(attachment, apvts, parameters, name, slider);
+    };
+
+    makeAttachmentHelper(attackLowMidSliderAttachment, Names::Attack_LowMid, attackLowMidSlider);
+    makeAttachmentHelper(releaseLowMidSliderAttachment, Names::Release_LowMid, releaseLowMidSlider);
+    makeAttachmentHelper(threshLowMidSliderAttachment, Names::Threshold_LowMid, threshLowMidSlider);
+    makeAttachmentHelper(ratioLowMidSliderAttachment, Names::Ratio_LowMid, ratioLowMidSlider);
+    makeAttachmentHelper(kneeLowMidSliderAttachment, Names::Knee_LowMid, kneeLowMidSlider);
+
+    addAndMakeVisible(attackLowMidSlider);
+    addAndMakeVisible(releaseLowMidSlider);
+    addAndMakeVisible(threshLowMidSlider);
+    addAndMakeVisible(ratioLowMidSlider);
+    addAndMakeVisible(kneeLowMidSlider);
+
+    bypassLowMidButton.setName("B");
+    soloLowMidButton.setName("S");
+    muteLowMidButton.setName("M");
+
+    addAndMakeVisible(bypassLowMidButton);
+    addAndMakeVisible(soloLowMidButton);
+    addAndMakeVisible(muteLowMidButton);
+
+    makeAttachmentHelper(muteLowMidAttachment, Names::Mute_LowMid, muteLowMidButton);
+    makeAttachmentHelper(soloLowMidAttachment, Names::Solo_LowMid, soloLowMidButton);
+    makeAttachmentHelper(bypassLowMidAttachment, Names::Bypassed_LowMid, bypassLowMidButton);
+};
+
+void BandLMControls::paint(juce::Graphics& g)
+{
+    using namespace juce;
+    auto bounds = getLocalBounds();
+    g.setColour(Colours::darkgrey);
+    g.fillAll();
+
+    bounds.reduce(1, 1);
+    g.setColour(Colours::black);
+    g.fillRoundedRectangle(bounds.toFloat(), 3);
+}
+
+void BandLMControls::resized()
+{
+    {
+        auto bounds = getLocalBounds().reduced(4);
+        using namespace juce;
+
+        auto createBandButtonBox = [](std::vector<Component*> comps)
+        {
+            FlexBox flexBox;
+            flexBox.flexDirection = FlexBox::Direction::row;
+            flexBox.flexWrap = FlexBox::Wrap::noWrap;
+
+            auto spacer = FlexItem().withWidth(2);
+
+            for (auto* comp : comps)
+            {
+                flexBox.items.add(spacer);
+                flexBox.items.add(FlexItem(*comp).withWidth(30).withFlex(1.f));
+            };
+
+            return flexBox;
+        };
+
+        auto bandButtonControlBox = createBandButtonBox({ &muteLowMidButton, &soloLowMidButton, &bypassLowMidButton });
+
+        bandButtonControlBox.performLayout(bounds.removeFromTop(30));
+
+        threshLowMidSlider.setBounds(bounds.removeFromLeft(30));
+
+        bounds.removeFromTop(30);
+
+        FlexBox flexRow1;
+        flexRow1.flexDirection = FlexBox::Direction::row;
+        flexRow1.flexWrap = FlexBox::Wrap::noWrap;
+
+        auto endCap = FlexItem().withWidth(6);
+
+        flexRow1.items.add(endCap);
+        flexRow1.items.add(FlexItem(attackLowMidSlider).withFlex(1.f));
+        flexRow1.items.add(FlexItem(releaseLowMidSlider).withFlex(1.f));
+        flexRow1.performLayout(bounds.removeFromTop(windowHeight * 5 / 30).reduced(5));
+
+        FlexBox flexRow2;
+        flexRow2.flexDirection = FlexBox::Direction::row;
+        flexRow2.flexWrap = FlexBox::Wrap::noWrap;
+        flexRow2.items.add(endCap);
+        flexRow2.items.add(FlexItem(ratioLowMidSlider).withFlex(1.f));
+        flexRow2.items.add(FlexItem(kneeLowMidSlider).withFlex(1.f));
+        flexRow2.performLayout(bounds.removeFromTop(windowHeight * 5 / 30).reduced(5));
+    }
+}
+
+BandHMControls::BandHMControls(juce::AudioProcessorValueTreeState& apv) : apvts(apv),
+attackHighMidSlider(nullptr, "ms", "Attack"),
+releaseHighMidSlider(nullptr, "ms", "Release"),
+//threshHighMidSlider(nullptr, "dB", "Thresh"),
+ratioHighMidSlider(nullptr, ": 1", "Ratio"),
+kneeHighMidSlider(nullptr, "", "Knee")
+{
+    using namespace Parameters;
+    const auto& parameters = GetParameters();
+
+    auto getParamHelper = [&parameters, &apvts = this->apvts](const auto& name) -> auto&
+    {
+        return getParam(apvts, parameters, name);
+    };
+
+    attackHighMidSlider.changeParam(&getParamHelper(Names::Attack_HighMid));
+    releaseHighMidSlider.changeParam(&getParamHelper(Names::Release_HighMid));
+    //threshHighMidSlider.changeParam(&getParamHelper(Names::Threshold_HighMid));
+    ratioHighMidSlider.changeParam(&getParamHelper(Names::Ratio_HighMid));
+    kneeHighMidSlider.changeParam(&getParamHelper(Names::Knee_HighMid));
+
+    addLabelPairs(attackHighMidSlider.labels, getParamHelper(Names::Attack_HighMid), "ms");
+    addLabelPairs(releaseHighMidSlider.labels, getParamHelper(Names::Release_HighMid), "ms");
+    //addLabelPairs(threshHighMidSlider.labels, getParamHelper(Names::Threshold_HighMid), "dB");
+    addLabelPairs(kneeHighMidSlider.labels, getParamHelper(Names::Knee_HighMid), "");
+
+    ratioHighMidSlider.labels.add({ 0.f, "1:1" });
+    ratioHighMidSlider.labels.add({ 1.f, "30:1" });
+
+    auto makeAttachmentHelper = [&parameters, &apvts = this->apvts](auto& attachment, const auto& name, auto& slider)
+    {
+        makeAttachment(attachment, apvts, parameters, name, slider);
+    };
+
+    makeAttachmentHelper(attackHighMidSliderAttachment, Names::Attack_HighMid, attackHighMidSlider);
+    makeAttachmentHelper(releaseHighMidSliderAttachment, Names::Release_HighMid, releaseHighMidSlider);
+    makeAttachmentHelper(threshHighMidSliderAttachment, Names::Threshold_HighMid, threshHighMidSlider);
+    makeAttachmentHelper(ratioHighMidSliderAttachment, Names::Ratio_HighMid, ratioHighMidSlider);
+    makeAttachmentHelper(kneeHighMidSliderAttachment, Names::Knee_HighMid, kneeHighMidSlider);
+
+    addAndMakeVisible(attackHighMidSlider);
+    addAndMakeVisible(releaseHighMidSlider);
+    addAndMakeVisible(threshHighMidSlider);
+    addAndMakeVisible(ratioHighMidSlider);
+    addAndMakeVisible(kneeHighMidSlider);
+
+    bypassHighMidButton.setName("B");
+    soloHighMidButton.setName("S");
+    muteHighMidButton.setName("M");
+
+    addAndMakeVisible(bypassHighMidButton);
+    addAndMakeVisible(soloHighMidButton);
+    addAndMakeVisible(muteHighMidButton);
+
+    makeAttachmentHelper(muteHighMidAttachment, Names::Mute_HighMid, muteHighMidButton);
+    makeAttachmentHelper(soloHighMidAttachment, Names::Solo_HighMid, soloHighMidButton);
+    makeAttachmentHelper(bypassHighMidAttachment, Names::Bypassed_HighMid, bypassHighMidButton);
+};
+
+void BandHMControls::paint(juce::Graphics& g)
+{
+    using namespace juce;
+    auto bounds = getLocalBounds();
+    g.setColour(Colours::darkgrey);
+    g.fillAll();
+
+    bounds.reduce(1, 1);
+    g.setColour(Colours::black);
+    g.fillRoundedRectangle(bounds.toFloat(), 3);
+}
+
+void BandHMControls::resized()
+{
+    {
+        auto bounds = getLocalBounds().reduced(4);
+        using namespace juce;
+
+        auto createBandButtonBox = [](std::vector<Component*> comps)
+        {
+            FlexBox flexBox;
+            flexBox.flexDirection = FlexBox::Direction::row;
+            flexBox.flexWrap = FlexBox::Wrap::noWrap;
+
+            auto spacer = FlexItem().withWidth(2);
+
+            for (auto* comp : comps)
+            {
+                flexBox.items.add(spacer);
+                flexBox.items.add(FlexItem(*comp).withWidth(30).withFlex(1.f));
+            };
+
+            return flexBox;
+        };
+
+        auto bandButtonControlBox = createBandButtonBox({ &muteHighMidButton, &soloHighMidButton, &bypassHighMidButton });
+
+        bandButtonControlBox.performLayout(bounds.removeFromTop(30));
+
+        threshHighMidSlider.setBounds(bounds.removeFromLeft(30));
+
+        bounds.removeFromTop(30);
+
+        FlexBox flexRow1;
+        flexRow1.flexDirection = FlexBox::Direction::row;
+        flexRow1.flexWrap = FlexBox::Wrap::noWrap;
+
+        auto endCap = FlexItem().withWidth(6);
+
+        flexRow1.items.add(endCap);
+        flexRow1.items.add(FlexItem(attackHighMidSlider).withFlex(1.f));
+        flexRow1.items.add(FlexItem(releaseHighMidSlider).withFlex(1.f));
+        flexRow1.performLayout(bounds.removeFromTop(windowHeight * 5 / 30).reduced(5));
+
+        FlexBox flexRow2;
+        flexRow2.flexDirection = FlexBox::Direction::row;
+        flexRow2.flexWrap = FlexBox::Wrap::noWrap;
+        flexRow2.items.add(endCap);
+        flexRow2.items.add(FlexItem(ratioHighMidSlider).withFlex(1.f));
+        flexRow2.items.add(FlexItem(kneeHighMidSlider).withFlex(1.f));
+        flexRow2.performLayout(bounds.removeFromTop(windowHeight * 5 / 30).reduced(5));
+    }
+}
+
+BandHControls::BandHControls(juce::AudioProcessorValueTreeState& apv) : apvts(apv),
+attackHighSlider(nullptr, "ms", "Attack"),
+releaseHighSlider(nullptr, "ms", "Release"),
+//threshHighSlider(nullptr, "dB", "Thresh"),
+ratioHighSlider(nullptr, ": 1", "Ratio"),
+kneeHighSlider(nullptr, "", "Knee")
+{
+    using namespace Parameters;
+    const auto& parameters = GetParameters();
+
+    auto getParamHelper = [&parameters, &apvts = this->apvts](const auto& name) -> auto&
+    {
+        return getParam(apvts, parameters, name);
+    };
+
+    attackHighSlider.changeParam(&getParamHelper(Names::Attack_High));
+    releaseHighSlider.changeParam(&getParamHelper(Names::Release_High));
+    //threshHighSlider.changeParam(&getParamHelper(Names::Threshold_High));
+    ratioHighSlider.changeParam(&getParamHelper(Names::Ratio_High));
+    kneeHighSlider.changeParam(&getParamHelper(Names::Knee_High));
+
+    addLabelPairs(attackHighSlider.labels, getParamHelper(Names::Attack_High), "ms");
+    addLabelPairs(releaseHighSlider.labels, getParamHelper(Names::Release_High), "ms");
+    //addLabelPairs(threshHighSlider.labels, getParamHelper(Names::Threshold_High), "dB");
+    addLabelPairs(kneeHighSlider.labels, getParamHelper(Names::Knee_High), "");
+
+    ratioHighSlider.labels.add({ 0.f, "1:1" });
+    ratioHighSlider.labels.add({ 1.f, "30:1" });
+
+    auto makeAttachmentHelper = [&parameters, &apvts = this->apvts](auto& attachment, const auto& name, auto& slider)
+    {
+        makeAttachment(attachment, apvts, parameters, name, slider);
+    };
+
+    makeAttachmentHelper(attackHighSliderAttachment, Names::Attack_High, attackHighSlider);
+    makeAttachmentHelper(releaseHighSliderAttachment, Names::Release_High, releaseHighSlider);
+    makeAttachmentHelper(threshHighSliderAttachment, Names::Threshold_High, threshHighSlider);
+    makeAttachmentHelper(ratioHighSliderAttachment, Names::Ratio_High, ratioHighSlider);
+    makeAttachmentHelper(kneeHighSliderAttachment, Names::Knee_High, kneeHighSlider);
+
+    addAndMakeVisible(attackHighSlider);
+    addAndMakeVisible(releaseHighSlider);
+    addAndMakeVisible(threshHighSlider);
+    addAndMakeVisible(ratioHighSlider);
+    addAndMakeVisible(kneeHighSlider);
+
+    bypassHighButton.setName("B");
+    soloHighButton.setName("S");
+    muteHighButton.setName("M");
+
+    addAndMakeVisible(bypassHighButton);
+    addAndMakeVisible(soloHighButton);
+    addAndMakeVisible(muteHighButton);
+
+    makeAttachmentHelper(muteHighAttachment, Names::Mute_High, muteHighButton);
+    makeAttachmentHelper(soloHighAttachment, Names::Solo_High, soloHighButton);
+    makeAttachmentHelper(bypassHighAttachment, Names::Bypassed_High, bypassHighButton);
+};
+
+void BandHControls::paint(juce::Graphics& g)
+{
+    using namespace juce;
+    auto bounds = getLocalBounds();
+    g.setColour(Colours::darkgrey);
+    g.fillAll();
+
+    bounds.reduce(1, 1);
+    g.setColour(Colours::black);
+    g.fillRoundedRectangle(bounds.toFloat(), 3);
+}
+
+void BandHControls::resized()
+{
+    {
+        auto bounds = getLocalBounds().reduced(4);
+        using namespace juce;
+
+        auto createBandButtonBox = [](std::vector<Component*> comps)
+        {
+            FlexBox flexBox;
+            flexBox.flexDirection = FlexBox::Direction::row;
+            flexBox.flexWrap = FlexBox::Wrap::noWrap;
+
+            auto spacer = FlexItem().withWidth(2);
+
+            for (auto* comp : comps)
+            {
+                flexBox.items.add(spacer);
+                flexBox.items.add(FlexItem(*comp).withWidth(30).withFlex(1.f));
+            };
+
+            return flexBox;
+        };
+
+        auto bandButtonControlBox = createBandButtonBox({ &muteHighButton, &soloHighButton, &bypassHighButton });
+
+        bandButtonControlBox.performLayout(bounds.removeFromTop(30));
+
+        threshHighSlider.setBounds(bounds.removeFromLeft(30));
+
+        bounds.removeFromTop(30);
+
+        FlexBox flexRow1;
+        flexRow1.flexDirection = FlexBox::Direction::row;
+        flexRow1.flexWrap = FlexBox::Wrap::noWrap;
+
+        auto endCap = FlexItem().withWidth(6);
+
+        flexRow1.items.add(endCap);
+        flexRow1.items.add(FlexItem(attackHighSlider).withFlex(1.f));
+        flexRow1.items.add(FlexItem(releaseHighSlider).withFlex(1.f));
+        flexRow1.performLayout(bounds.removeFromTop(windowHeight * 5 / 30).reduced(5));
+
+        FlexBox flexRow2;
+        flexRow2.flexDirection = FlexBox::Direction::row;
+        flexRow2.flexWrap = FlexBox::Wrap::noWrap;
+        flexRow2.items.add(endCap);
+        flexRow2.items.add(FlexItem(ratioHighSlider).withFlex(1.f));
+        flexRow2.items.add(FlexItem(kneeHighSlider).withFlex(1.f));
+        flexRow2.performLayout(bounds.removeFromTop(windowHeight * 5 / 30).reduced(5));
+    }
+}
+
 //==============================================================================
 
 GlobalControls::GlobalControls(juce::AudioProcessorValueTreeState& apvts)

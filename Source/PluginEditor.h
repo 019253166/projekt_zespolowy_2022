@@ -395,6 +395,8 @@ void addLabelPairs(Labels& labels, const ParamType& param, const SuffixType& suf
     labels.add({ 1.f, getValString(param, false, suffix) });
 }
 
+//==============================================================================
+
 struct BandControls : juce::Component
 {
     BandControls(juce::AudioProcessorValueTreeState& apvts);
@@ -410,25 +412,10 @@ private:
 
     using Attachment = juce::AudioProcessorValueTreeState::SliderAttachment;
     std::unique_ptr<Attachment> attackLowSliderAttachment,
-                                    attackLowMidSliderAttachment,
-                                    attackHighMidSliderAttachment,
-                                    attackHighSliderAttachment,
                                 releaseLowSliderAttachment,
-                                    releaseLowMidSliderAttachment,
-                                    releaseHighMidSliderAttachment,
-                                    releaseHighSliderAttachment,
                                 threshLowSliderAttachment,
-                                    threshLowMidSliderAttachment,
-                                    threshHighMidSliderAttachment,
-                                    threshHighSliderAttachment,
                                 ratioLowSliderAttachment,
-                                    ratioLowMidSliderAttachment,
-                                    ratioHighMidSliderAttachment,
-                                    ratioHighSliderAttachment,
-                                kneeLowSliderAttachment,
-                                    kneeLowMidSliderAttachment,
-                                    kneeHighMidSliderAttachment,
-                                    kneeHighSliderAttachment;
+                                kneeLowSliderAttachment;
 
     MuteButton muteLowButton;
     SoloButton soloLowButton;
@@ -439,6 +426,101 @@ private:
                                    soloLowAttachment,
                                    bypassLowAttachment;
 };
+
+struct BandLMControls : juce::Component
+{
+    BandLMControls(juce::AudioProcessorValueTreeState& apvts);
+
+    void paint(juce::Graphics& g) override;
+
+    void resized() override;
+
+private:
+    juce::AudioProcessorValueTreeState& apvts;
+    RotarySliderWithLabels attackLowMidSlider, releaseLowMidSlider, ratioLowMidSlider, kneeLowMidSlider;
+    VerticalSlider threshLowMidSlider;
+
+    using Attachment = juce::AudioProcessorValueTreeState::SliderAttachment;
+    std::unique_ptr<Attachment>
+        attackLowMidSliderAttachment,
+        releaseLowMidSliderAttachment,
+        threshLowMidSliderAttachment,
+        ratioLowMidSliderAttachment,
+        kneeLowMidSliderAttachment;
+
+    MuteButton muteLowMidButton;
+    SoloButton soloLowMidButton;
+    juce::ToggleButton bypassLowMidButton;
+
+    using BtnAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
+    std::unique_ptr<BtnAttachment> muteLowMidAttachment,
+        soloLowMidAttachment,
+        bypassLowMidAttachment;
+};
+
+struct BandHMControls : juce::Component
+{
+    BandHMControls(juce::AudioProcessorValueTreeState& apvts);
+
+    void paint(juce::Graphics& g) override;
+
+    void resized() override;
+
+private:
+    juce::AudioProcessorValueTreeState& apvts;
+    RotarySliderWithLabels attackHighMidSlider, releaseHighMidSlider, ratioHighMidSlider, kneeHighMidSlider;
+    VerticalSlider threshHighMidSlider;
+
+    using Attachment = juce::AudioProcessorValueTreeState::SliderAttachment;
+    std::unique_ptr<Attachment>
+        attackHighMidSliderAttachment,
+        releaseHighMidSliderAttachment,
+        threshHighMidSliderAttachment,
+        ratioHighMidSliderAttachment,
+        kneeHighMidSliderAttachment;
+
+    MuteButton muteHighMidButton;
+    SoloButton soloHighMidButton;
+    juce::ToggleButton bypassHighMidButton;
+
+    using BtnAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
+    std::unique_ptr<BtnAttachment> muteHighMidAttachment,
+        soloHighMidAttachment,
+        bypassHighMidAttachment;
+};
+
+struct BandHControls : juce::Component
+{
+    BandHControls(juce::AudioProcessorValueTreeState& apvts);
+
+    void paint(juce::Graphics& g) override;
+
+    void resized() override;
+
+private:
+    juce::AudioProcessorValueTreeState& apvts;
+    RotarySliderWithLabels attackHighSlider, releaseHighSlider, ratioHighSlider, kneeHighSlider;
+    VerticalSlider threshHighSlider;
+
+    using Attachment = juce::AudioProcessorValueTreeState::SliderAttachment;
+    std::unique_ptr<Attachment> 
+        attackHighSliderAttachment,
+        releaseHighSliderAttachment,
+        threshHighSliderAttachment,
+        ratioHighSliderAttachment,
+        kneeHighSliderAttachment;
+
+    MuteButton muteHighButton;
+    SoloButton soloHighButton;
+    juce::ToggleButton bypassHighButton;
+
+    using BtnAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
+    std::unique_ptr<BtnAttachment> muteHighAttachment,
+        soloHighAttachment,
+        bypassHighAttachment;
+};
+
+//==============================================================================
 
 struct GlobalControls : juce::Component
 {
@@ -479,8 +561,12 @@ private:
 
    // Placeholder /*globalControls,*//* bandLowControls,*/ bandLowMidControls, bandHighMidControls, bandHighControls;
     GlobalControls globalControls {audioProcessor.apvts};
-    BandControls bandLowControls{ audioProcessor.apvts }, bandLowMidControls{ audioProcessor.apvts }, bandHighMidControls{ audioProcessor.apvts }, bandHighControls{ audioProcessor.apvts };
+    BandControls bandLowControls{ audioProcessor.apvts };
+    BandLMControls bandLowMidControls{ audioProcessor.apvts };
+    BandHMControls bandHighMidControls{ audioProcessor.apvts };
+    BandHControls bandHighControls{ audioProcessor.apvts };
+
     SpectrumAnalyzer analyzer {audioProcessor};
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Projekt_zespoowy_2022AudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Projekt_zespoowy_2022AudioProcessorEditor);
 };
