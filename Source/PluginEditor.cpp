@@ -493,6 +493,52 @@ void LookAndFeel::drawToggleButton(juce::Graphics& g,
 
         g.strokePath(analyzerButton->randomPath, PathStrokeType(1.f));
     }
+    else if (auto* muteButton = dynamic_cast<MuteButton*>(&toggleButton))
+    {
+        auto bounds = toggleButton.getLocalBounds().reduced(2);
+
+        auto buttonIsOn = toggleButton.getToggleState();
+
+        const int cornerSize = 4;
+
+        g.setColour(buttonIsOn ? juce::Colours::red : juce::Colours::black);
+        g.fillRoundedRectangle(bounds.toFloat(), cornerSize);
+
+        g.setColour(buttonIsOn ? juce::Colours::black : juce::Colours::red);
+        g.drawRoundedRectangle(bounds.toFloat(), cornerSize, 1);
+        g.drawFittedText(toggleButton.getName(), bounds, juce::Justification::centred, 1);
+    }
+    else if (auto* soloButton = dynamic_cast<SoloButton*>(&toggleButton))
+    {
+        auto bounds = toggleButton.getLocalBounds().reduced(2);
+
+        auto buttonIsOn = toggleButton.getToggleState();
+
+        const int cornerSize = 4;
+
+        g.setColour(buttonIsOn ? juce::Colours::orange : juce::Colours::black);
+        g.fillRoundedRectangle(bounds.toFloat(), cornerSize);
+
+        g.setColour(buttonIsOn ? juce::Colours::black : juce::Colours::orange);
+        g.drawRoundedRectangle(bounds.toFloat(), cornerSize, 1);
+        g.drawFittedText(toggleButton.getName(), bounds, juce::Justification::centred, 1);
+    }
+    else
+    {
+        auto bounds = toggleButton.getLocalBounds().reduced(2);
+
+        auto buttonIsOn = toggleButton.getToggleState();
+
+        const int cornerSize = 4;
+
+        g.setColour(buttonIsOn ? juce::Colours::white : juce::Colours::black);
+        g.fillRoundedRectangle(bounds.toFloat(), cornerSize);
+
+        g.setColour(buttonIsOn ? juce::Colours::black : juce::Colours::white);
+        g.drawRoundedRectangle(bounds.toFloat(), cornerSize, 1);
+        g.drawFittedText(toggleButton.getName(), bounds, juce::Justification::centred, 1);
+
+    }
 }
 //==============================================================================
 void RotarySliderWithLabels::paint(juce::Graphics& g)
@@ -621,7 +667,7 @@ BandControls::BandControls(juce::AudioProcessorValueTreeState& apv) : apvts(apv)
 attackLowSlider(nullptr, "ms", "Attack"),
 releaseLowSlider(nullptr, "ms", "Release"),
 //threshLowSlider(nullptr, "dB", "Thresh"),
-ratioLowSlider(nullptr, ":1", "Ratio"),
+ratioLowSlider(nullptr, ": 1", "Ratio"),
 kneeLowSlider(nullptr, "", "Knee")
 {
     using namespace Parameters;
@@ -662,6 +708,14 @@ kneeLowSlider(nullptr, "", "Knee")
     addAndMakeVisible(threshLowSlider);
     addAndMakeVisible(ratioLowSlider);
     addAndMakeVisible(kneeLowSlider);
+
+    bypassLowButton.setName("B");
+    soloLowButton.setName("S");
+    muteLowButton.setName("M");
+
+    addAndMakeVisible(bypassLowButton);
+    addAndMakeVisible(soloLowButton);
+    addAndMakeVisible(muteLowButton);
 };
 
 void BandControls::paint(juce::Graphics& g)
@@ -682,65 +736,49 @@ void BandControls::resized()
     auto bounds = getLocalBounds().reduced(4);
     using namespace juce;
 
+    auto createBandButtonBox = [](std::vector<Component*> comps)
+    {
+        FlexBox flexBox;
+        flexBox.flexDirection = FlexBox::Direction::row;
+        flexBox.flexWrap = FlexBox::Wrap::noWrap;
+
+        auto spacer = FlexItem().withWidth(2);
+
+        for (auto* comp : comps)
+        {
+            flexBox.items.add(spacer);
+            flexBox.items.add(FlexItem(*comp).withWidth(30).withFlex(1.f));
+        };
+
+        return flexBox;
+    };
+
+    auto bandButtonControlBox = createBandButtonBox({ &muteLowButton, &soloLowButton, &bypassLowButton });
+
+    bandButtonControlBox.performLayout(bounds.removeFromTop(30));
+
+    bounds.removeFromTop(30);
+
+    threshLowSlider.setBounds(bounds.removeFromLeft(30));
+
     FlexBox flexRow1;
     flexRow1.flexDirection = FlexBox::Direction::row;
     flexRow1.flexWrap = FlexBox::Wrap::noWrap;
 
-    auto spacer = FlexItem().withWidth(4);
     auto endCap = FlexItem().withWidth(6);
 
     flexRow1.items.add(endCap);
     flexRow1.items.add(FlexItem(attackLowSlider).withFlex(1.f));
-    flexRow1.items.add(spacer);
     flexRow1.items.add(FlexItem(releaseLowSlider).withFlex(1.f));
-
     flexRow1.performLayout(bounds.removeFromTop(windowHeight * 5 / 30).reduced(5));
 
     FlexBox flexRow2;
     flexRow2.flexDirection = FlexBox::Direction::row;
     flexRow2.flexWrap = FlexBox::Wrap::noWrap;
     flexRow2.items.add(endCap);
-    flexRow2.items.add(FlexItem(threshLowSlider).withFlex(1.f));
-    flexRow2.items.add(spacer);
     flexRow2.items.add(FlexItem(ratioLowSlider).withFlex(1.f));
-
+    flexRow2.items.add(FlexItem(kneeLowSlider).withFlex(1.f));
     flexRow2.performLayout(bounds.removeFromTop(windowHeight * 5 / 30).reduced(5));
-
-    FlexBox flexRow3;
-    flexRow3.flexDirection = FlexBox::Direction::row;
-    flexRow3.flexWrap = FlexBox::Wrap::noWrap;
-    flexRow3.items.add(endCap);
-    flexRow3.items.add(FlexItem(kneeLowSlider).withFlex(1.f));
-
-    flexRow3.performLayout(bounds.removeFromTop(windowHeight * 5 / 30).reduced(5));
-
-    //FlexBox flexColumn1;
-    //flexColumn1.flexDirection = FlexBox::Direction::row;
-    //flexColumn1.flexWrap = FlexBox::Wrap::noWrap;
-
-
-    //bounds.removeFromTop(windowHeight * 5 / 24);
-
-    ////flexColumn1.items.add(endCap);
-    //flexColumn1.items.add(FlexItem(attackLowSlider).withFlex(1.f));
-    ////flexColumn1.items.add(spacer);
-    //flexColumn1.items.add(FlexItem(ratioLowSlider).withFlex(1.f));
-
-    //FlexBox flexColumn2;
-    //flexColumn2.flexDirection = FlexBox::Direction::column;
-    //flexColumn2.flexWrap = FlexBox::Wrap::noWrap;
-    ////flexColumn2.items.add(endCap);
-    //flexColumn2.items.add(FlexItem(releaseLowSlider).withFlex(1.f));
-    ////flexColumn2.items.add(spacer);
-    //flexColumn2.items.add(FlexItem(kneeLowSlider).withFlex(1.f));
-
-    ////flexColumn2.performLayout(bounds.removeFromTop(windowHeight * 5 / 24).reduced(5));
-    //FlexBox flexRow;
-
-    //flexRow.items.add(FlexItem(threshLowSlider).withWidth(getWidth() / 4.0f));
-    //flexRow.items.add(flexColumn1);
-    //flexRow.items.add(flexColumn2);
-    //flexRow.performLayout(bounds);
     }
 }
 

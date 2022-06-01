@@ -165,7 +165,6 @@ private:
     Fifo<PathType> pathFifo;
 };
 
-
 struct PathProducer
 {
     PathProducer(SingleChannelSampleFifo<Projekt_zespoowy_2022AudioProcessor::BlockType>& scsf) :
@@ -312,6 +311,9 @@ struct VerticalSlider : juce::Slider
 
 struct PowerButton : juce::ToggleButton { };
 
+struct MuteButton : juce::ToggleButton { };
+struct SoloButton : juce::ToggleButton { };
+
 struct AnalyzerButton : juce::ToggleButton
 {
     void resized() override
@@ -335,6 +337,7 @@ struct AnalyzerButton : juce::ToggleButton
 
     juce::Path randomPath;
 };
+
 
 //==============================================================================
 struct Placeholder : juce::Component
@@ -426,6 +429,10 @@ private:
                                     kneeLowMidSliderAttachment,
                                     kneeHighMidSliderAttachment,
                                     kneeHighSliderAttachment;
+
+    MuteButton muteLowButton;
+    SoloButton soloLowButton;
+    juce::ToggleButton bypassLowButton;
 };
 
 struct GlobalControls : juce::Component
