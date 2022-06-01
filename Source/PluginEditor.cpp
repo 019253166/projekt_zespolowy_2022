@@ -848,6 +848,10 @@ kneeLowSlider(nullptr, "", "Knee")
     addAndMakeVisible(ratioLowSlider);
     addAndMakeVisible(kneeLowSlider);
 
+    addAndMakeVisible(threshLabel);
+    threshLabel.setText("Thres. (dB)", juce::dontSendNotification);
+    threshLabel.setJustificationType(juce::Justification::left);
+
     bypassLowButton.setName("B");
     soloLowButton.setName("S");
     muteLowButton.setName("M");
@@ -902,7 +906,7 @@ void BandControls::resized()
 
     threshLowSlider.setBounds(bounds.removeFromLeft(30));
 
-    bounds.removeFromTop(30);
+    threshLabel.setBounds(bounds.removeFromTop(30));
 
     FlexBox flexRow1;
     flexRow1.flexDirection = FlexBox::Direction::row;
@@ -971,6 +975,10 @@ kneeLowMidSlider(nullptr, "", "Knee")
     addAndMakeVisible(ratioLowMidSlider);
     addAndMakeVisible(kneeLowMidSlider);
 
+    addAndMakeVisible(threshLabel);
+    threshLabel.setText("Thres. (dB)", juce::dontSendNotification);
+    threshLabel.setJustificationType(juce::Justification::left);
+
     bypassLowMidButton.setName("B");
     soloLowMidButton.setName("S");
     muteLowMidButton.setName("M");
@@ -1025,7 +1033,7 @@ void BandLMControls::resized()
 
         threshLowMidSlider.setBounds(bounds.removeFromLeft(30));
 
-        bounds.removeFromTop(30);
+        threshLabel.setBounds(bounds.removeFromTop(30));
 
         FlexBox flexRow1;
         flexRow1.flexDirection = FlexBox::Direction::row;
@@ -1094,6 +1102,10 @@ kneeHighMidSlider(nullptr, "", "Knee")
     addAndMakeVisible(ratioHighMidSlider);
     addAndMakeVisible(kneeHighMidSlider);
 
+    addAndMakeVisible(threshLabel);
+    threshLabel.setText("Thres. (dB)", juce::dontSendNotification);
+    threshLabel.setJustificationType(juce::Justification::left);
+
     bypassHighMidButton.setName("B");
     soloHighMidButton.setName("S");
     muteHighMidButton.setName("M");
@@ -1148,7 +1160,7 @@ void BandHMControls::resized()
 
         threshHighMidSlider.setBounds(bounds.removeFromLeft(30));
 
-        bounds.removeFromTop(30);
+        threshLabel.setBounds(bounds.removeFromTop(30));
 
         FlexBox flexRow1;
         flexRow1.flexDirection = FlexBox::Direction::row;
@@ -1168,6 +1180,8 @@ void BandHMControls::resized()
         flexRow2.items.add(FlexItem(ratioHighMidSlider).withFlex(1.f));
         flexRow2.items.add(FlexItem(kneeHighMidSlider).withFlex(1.f));
         flexRow2.performLayout(bounds.removeFromTop(windowHeight * 5 / 30).reduced(5));
+
+
     }
 }
 
@@ -1216,6 +1230,10 @@ kneeHighSlider(nullptr, "", "Knee")
     addAndMakeVisible(threshHighSlider);
     addAndMakeVisible(ratioHighSlider);
     addAndMakeVisible(kneeHighSlider);
+
+    addAndMakeVisible(threshLabel);
+    threshLabel.setText("Thres. (dB)", juce::dontSendNotification);
+    threshLabel.setJustificationType(juce::Justification::left);
 
     bypassHighButton.setName("B");
     soloHighButton.setName("S");
@@ -1271,7 +1289,7 @@ void BandHControls::resized()
 
         threshHighSlider.setBounds(bounds.removeFromLeft(30));
 
-        bounds.removeFromTop(30);
+        threshLabel.setBounds(bounds.removeFromTop(30));
 
         FlexBox flexRow1;
         flexRow1.flexDirection = FlexBox::Direction::row;

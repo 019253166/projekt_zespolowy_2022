@@ -461,6 +461,8 @@ private:
                                 ratioLowSliderAttachment,
                                 kneeLowSliderAttachment;
 
+    juce::Label threshLabel;
+
     MuteButton muteLowButton;
     SoloButton soloLowButton;
     juce::ToggleButton bypassLowButton;
@@ -491,6 +493,8 @@ private:
         threshLowMidSliderAttachment,
         ratioLowMidSliderAttachment,
         kneeLowMidSliderAttachment;
+
+    juce::Label threshLabel;
 
     MuteButton muteLowMidButton;
     SoloButton soloLowMidButton;
@@ -523,6 +527,8 @@ private:
         ratioHighMidSliderAttachment,
         kneeHighMidSliderAttachment;
 
+    juce::Label threshLabel;
+
     MuteButton muteHighMidButton;
     SoloButton soloHighMidButton;
     juce::ToggleButton bypassHighMidButton;
@@ -553,6 +559,8 @@ private:
         threshHighSliderAttachment,
         ratioHighSliderAttachment,
         kneeHighSliderAttachment;
+
+    juce::Label threshLabel;
 
     MuteButton muteHighButton;
     SoloButton soloHighButton;
