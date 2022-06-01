@@ -282,6 +282,8 @@ struct CompressorBand
 
     void process(juce::AudioBuffer<float>& buffer)
     {
+        auto preRMS = computeRMSLevel(buffer);
+
         auto block = juce::dsp::AudioBlock<float>(buffer);
         //przejmuje bufor i dodaje do niego próbki sygna³u
         auto context = juce::dsp::ProcessContextReplacing<float>(block);
@@ -291,10 +293,39 @@ struct CompressorBand
         //jeœli bypass jest w³¹czony, nie rób nic
 
         compressor.process(context);
+
+        auto postRMS = computeRMSLevel(buffer);
+
+        auto convertToDb = [](auto input)
+        {
+            return juce::Decibels::gainToDecibels(input);
+        };
+        rmsInputLevelDb.store(convertToDb(preRMS));
+        rmsOutputLevelDb.store(convertToDb(postRMS));
     }
+
+    float getRMSOutputLevelDb() const { return rmsOutputLevelDb; }
+    float getRMSInputLevelDb() const { return rmsInputLevelDb; }
+
 private:
     juce::dsp::Compressor<float> compressor;
     
+    std::atomic<float> rmsInputLevelDb{ -48.f };
+    std::atomic<float> rmsOutputLevelDb{ -48.f };
+
+    template<typename T>
+    float computeRMSLevel(const T& buffer)
+    {
+        int numChannels = static_cast<int>(buffer.getNumChannels());
+        int numSamples = static_cast<int>(buffer.getNumSamples());
+        auto rms = 0.f;
+        for (int chan = 0; chan < numChannels; ++chan)
+        {
+            rms += buffer.getRMSLevel(chan, 0, numSamples);
+        }
+        rms /= static_cast<float>(numChannels);
+        return rms;
+    }
 };
 //==============================================================================
 /**
@@ -347,7 +378,6 @@ public:
     using BlockType = juce::AudioBuffer<float>;
     SingleChannelSampleFifo<BlockType> leftChannelFifo{ Channel::Left };
     SingleChannelSampleFifo<BlockType> rightChannelFifo{ Channel::Right };
-private:
 	/*
 	juce::dsp::Compressor<float> compressor;
 	juce::AudioParameterFloat* attack{ nullptr };
@@ -363,6 +393,7 @@ private:
 	CompressorBand& highMidComp = compressors[2];
 	CompressorBand& highComp = compressors[3];
 
+private:
 	//filtry Linkwitza-Rileya
 	using Filter = juce::dsp::LinkwitzRileyFilter<float>;
 	

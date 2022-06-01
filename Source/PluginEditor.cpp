@@ -128,11 +128,37 @@ void SpectrumAnalyzer::drawCrossover(juce::Graphics& g)
         return jmap(db, -48.f, 12.f, (float)bottom, (float)top);
     };
 
+    auto zeroDb = mapY(0.f);
+    g.setColour(Colours::hotpink.withAlpha(0.3f));
+    g.fillRect(Rectangle<float>::leftTopRightBottom(left, zeroDb, lowX, mapY(lowBandGR)));
+    g.fillRect(Rectangle<float>::leftTopRightBottom(lowX, zeroDb, midX, mapY(lowBandGR)));
+    g.fillRect(Rectangle<float>::leftTopRightBottom(midX, zeroDb, highX, mapY(lowBandGR)));
+    g.fillRect(Rectangle<float>::leftTopRightBottom(highX, zeroDb, right, mapY(lowBandGR)));
+
     g.setColour(Colours::cyan);
     g.drawHorizontalLine(mapY(lowThresholdParam->get()), left, lowX);
     g.drawHorizontalLine(mapY(lowMidThresholdParam->get()), lowX, midX);
     g.drawHorizontalLine(mapY(highMidThresholdParam->get()), midX, highX);
     g.drawHorizontalLine(mapY(highThresholdParam->get()), highX, right);
+}
+
+void SpectrumAnalyzer::update(const std::vector<float>& values)
+{
+    jassert(values.size() == 8);
+    enum
+    {
+        LowBandIn, LowBandOut,
+        LowMidBandIn, LowMidBandOut,
+        HighMidBandIn, HighMidBandOut,
+        HighBandIn, HighBandOut
+    };
+
+    lowBandGR = values[LowBandOut] - values[LowBandIn];
+    lowMidBandGR = values[LowMidBandOut] - values[LowMidBandIn];
+    highMidBandGR = values[HighMidBandOut] - values[HighMidBandIn];
+    highMidBandGR = values[HighMidBandOut] - values[HighMidBandIn];
+
+    repaint();
 }
 
 std::vector<float> SpectrumAnalyzer::getFrequencies()
@@ -1370,6 +1396,8 @@ Projekt_zespoowy_2022AudioProcessorEditor::Projekt_zespoowy_2022AudioProcessorEd
     addAndMakeVisible(bandHighControls);
 
     setSize (windowWidth, windowHeight);
+
+    startTimerHz(60);
 }
 
 Projekt_zespoowy_2022AudioProcessorEditor::~Projekt_zespoowy_2022AudioProcessorEditor()
@@ -1397,4 +1425,21 @@ void Projekt_zespoowy_2022AudioProcessorEditor::resized()
     bandLowMidControls.setBounds(bounds.removeFromLeft(windowWidth / 4));
     bandHighMidControls.setBounds(bounds.removeFromLeft(windowWidth / 4));
     bandHighControls.setBounds(bounds.removeFromLeft(windowWidth / 4));
+}
+
+void Projekt_zespoowy_2022AudioProcessorEditor::timerCallback()
+{
+    std::vector<float> values
+    {
+        audioProcessor.lowComp.getRMSInputLevelDb(),
+        audioProcessor.lowComp.getRMSOutputLevelDb(),
+        audioProcessor.lowMidComp.getRMSInputLevelDb(),
+        audioProcessor.lowMidComp.getRMSOutputLevelDb(),
+        audioProcessor.highMidComp.getRMSInputLevelDb(),
+        audioProcessor.highMidComp.getRMSOutputLevelDb(),
+        audioProcessor.highComp.getRMSInputLevelDb(),
+        audioProcessor.highComp.getRMSOutputLevelDb(),
+    };
+
+    analyzer.update(values);
 }

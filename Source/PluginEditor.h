@@ -213,6 +213,8 @@ struct SpectrumAnalyzer : juce::Component,
     {
         shouldShowFFTAnalysis = enabled;
     }
+
+    void update(const std::vector<float>& values);
 private:
     Projekt_zespoowy_2022AudioProcessor& audioProcessor;
 
@@ -251,6 +253,11 @@ private:
     juce::AudioParameterFloat* lowMidThresholdParam{ nullptr };
     juce::AudioParameterFloat* highMidThresholdParam{ nullptr };
     juce::AudioParameterFloat* highThresholdParam{ nullptr };
+
+    float lowBandGR{ 0.f };
+    float lowMidBandGR{ 0.f };
+    float highMidBandGR{ 0.f };
+    float highBandGR{ 0.f };
 };
 
 struct LookAndFeel : juce::LookAndFeel_V4
@@ -580,7 +587,8 @@ private:
 
 /**
 */
-class Projekt_zespoowy_2022AudioProcessorEditor  : public juce::AudioProcessorEditor
+class Projekt_zespoowy_2022AudioProcessorEditor  : public juce::AudioProcessorEditor,
+    juce::Timer
 {
 public:
     Projekt_zespoowy_2022AudioProcessorEditor (Projekt_zespoowy_2022AudioProcessor&);
@@ -589,6 +597,8 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
+
+    void timerCallback() override;
 
 private:
     LookAndFeel lnf;
