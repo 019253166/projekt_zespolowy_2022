@@ -131,9 +131,9 @@ void SpectrumAnalyzer::drawCrossover(juce::Graphics& g)
     auto zeroDb = mapY(0.f);
     g.setColour(Colours::hotpink.withAlpha(0.3f));
     g.fillRect(Rectangle<float>::leftTopRightBottom(left, zeroDb, lowX, mapY(lowBandGR)));
-    g.fillRect(Rectangle<float>::leftTopRightBottom(lowX, zeroDb, midX, mapY(lowBandGR)));
-    g.fillRect(Rectangle<float>::leftTopRightBottom(midX, zeroDb, highX, mapY(lowBandGR)));
-    g.fillRect(Rectangle<float>::leftTopRightBottom(highX, zeroDb, right, mapY(lowBandGR)));
+    g.fillRect(Rectangle<float>::leftTopRightBottom(lowX, zeroDb, midX, mapY(lowMidBandGR)));
+    g.fillRect(Rectangle<float>::leftTopRightBottom(midX, zeroDb, highX, mapY(highMidBandGR)));
+    g.fillRect(Rectangle<float>::leftTopRightBottom(highX, zeroDb, right, mapY(highBandGR)));
 
     g.setColour(Colours::cyan);
     g.drawHorizontalLine(mapY(lowThresholdParam->get()), left, lowX);
@@ -156,7 +156,7 @@ void SpectrumAnalyzer::update(const std::vector<float>& values)
     lowBandGR = values[LowBandOut] - values[LowBandIn];
     lowMidBandGR = values[LowMidBandOut] - values[LowMidBandIn];
     highMidBandGR = values[HighMidBandOut] - values[HighMidBandIn];
-    highMidBandGR = values[HighMidBandOut] - values[HighMidBandIn];
+    highBandGR = values[HighBandOut] - values[HighBandIn];
 
     repaint();
 }
