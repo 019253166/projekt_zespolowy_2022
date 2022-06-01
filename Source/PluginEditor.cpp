@@ -716,6 +716,10 @@ kneeLowSlider(nullptr, "", "Knee")
     addAndMakeVisible(bypassLowButton);
     addAndMakeVisible(soloLowButton);
     addAndMakeVisible(muteLowButton);
+
+    makeAttachmentHelper(muteLowAttachment, Names::Mute_Low, muteLowButton);
+    makeAttachmentHelper(soloLowAttachment, Names::Solo_Low, soloLowButton);
+    makeAttachmentHelper(bypassLowAttachment, Names::Bypassed_Low, bypassLowButton);
 };
 
 void BandControls::paint(juce::Graphics& g)
@@ -757,9 +761,9 @@ void BandControls::resized()
 
     bandButtonControlBox.performLayout(bounds.removeFromTop(30));
 
-    bounds.removeFromTop(30);
-
     threshLowSlider.setBounds(bounds.removeFromLeft(30));
+
+    bounds.removeFromTop(30);
 
     FlexBox flexRow1;
     flexRow1.flexDirection = FlexBox::Direction::row;

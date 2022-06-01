@@ -433,6 +433,11 @@ private:
     MuteButton muteLowButton;
     SoloButton soloLowButton;
     juce::ToggleButton bypassLowButton;
+
+    using BtnAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
+    std::unique_ptr<BtnAttachment> muteLowAttachment,
+                                   soloLowAttachment,
+                                   bypassLowAttachment;
 };
 
 struct GlobalControls : juce::Component
