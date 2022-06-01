@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="o8R8wn" name="projekt_zespo&#322;owy_2022" projectType="audioplug"
-              useAppConfig="0" addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1"
-              cppLanguageStandard="17" companyName="Projekt_Zespolowy(Grupa 3)"
-              displaySplashScreen="1">
-  <MAINGROUP id="Iznoap" name="projekt_zespo&#322;owy_2022">
+<JUCERPROJECT id="o8R8wn" name="CompressMe" projectType="audioplug" useAppConfig="0"
+              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" cppLanguageStandard="17"
+              companyName="JPK Studio" displaySplashScreen="1" pluginDesc="4 band compressor"
+              pluginName="CompressMe" pluginManufacturer="JPK Studio">
+  <MAINGROUP id="Iznoap" name="CompressMe">
     <GROUP id="{6187CAC5-2625-67C2-09E1-23E3E92B2603}" name="Source">
       <FILE id="i28pZg" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
