@@ -37,6 +37,11 @@ SpectrumAnalyzer::SpectrumAnalyzer(Projekt_zespoowy_2022AudioProcessor& p) :
     floatHelper(midCrossoverParam, Names::LowMid_HighMid_Crossover_Freq);
     floatHelper(highCrossoverParam, Names::HighMid_High_Crossover_Freq);
 
+    floatHelper(lowThresholdParam, Names::Threshold_Low);
+    floatHelper(lowMidThresholdParam, Names::Threshold_LowMid);
+    floatHelper(highMidThresholdParam, Names::Threshold_HighMid);
+    floatHelper(highThresholdParam, Names::Threshold_High);
+
     startTimerHz(60);
 }
 
@@ -101,6 +106,8 @@ void SpectrumAnalyzer::drawCrossover(juce::Graphics& g)
 
     const auto top = renderArea.getY();
     const auto bottom = renderArea.getBottom();
+    const auto left = renderArea.getX();
+    const auto right = renderArea.getRight();
 
     auto mapX = [left = renderArea.getX(), width = renderArea.getWidth()](float f)
     {
@@ -115,6 +122,17 @@ void SpectrumAnalyzer::drawCrossover(juce::Graphics& g)
     g.drawVerticalLine(midX, top, bottom);
     auto highX = mapX(highCrossoverParam->get());
     g.drawVerticalLine(highX, top, bottom);
+
+    auto mapY = [bottom, top](float db)
+    {
+        return jmap(db, -48.f, 12.f, (float)bottom, (float)top);
+    };
+
+    g.setColour(Colours::cyan);
+    g.drawHorizontalLine(mapY(lowThresholdParam->get()), left, lowX);
+    g.drawHorizontalLine(mapY(lowMidThresholdParam->get()), lowX, midX);
+    g.drawHorizontalLine(mapY(highMidThresholdParam->get()), midX, highX);
+    g.drawHorizontalLine(mapY(highThresholdParam->get()), highX, right);
 }
 
 std::vector<float> SpectrumAnalyzer::getFrequencies()
@@ -648,6 +666,101 @@ juce::String RotarySliderWithLabels::getDisplayString() const
 }
 
 void RotarySliderWithLabels::changeParam(juce::RangedAudioParameter* p)
+{
+    param = p;
+    repaint();
+}
+
+void VerticalSliderWithLabels::paint(juce::Graphics& g)
+{
+    using namespace juce;
+    
+    auto range = getRange();
+    auto sliderBounds = getSliderBounds();
+    auto bounds = getLocalBounds();
+
+    g.setColour(Colours::white);
+    g.drawFittedText(getName(), bounds.removeFromTop(getTextHeight() + 2).removeFromLeft(getWidth() / 2),
+                    Justification::topLeft, 1);
+
+    auto center = sliderBounds.toFloat().getCentre();
+
+    g.setColour(Colours::white);
+    g.setFont(getTextHeight());
+
+    auto numChoices = labels.size();
+    for (int i = 0; i < numChoices; ++i)
+    {
+        auto pos = labels[i].pos;
+        jassert(0.f <= pos);
+        jassert(pos <= 1.f);
+
+        auto ang = jmap(pos, 0.f, 1.f);
+
+        Rectangle<float> r;
+        auto str = labels[i].label;
+        r.setSize(g.getCurrentFont().getStringWidth(str), getTextHeight());
+        r.setCentre(center);
+        r.setY(r.getY() + getTextHeight());
+
+        g.drawFittedText(str, r.toNearestInt(), juce::Justification::centred, 1);
+    }
+}
+
+juce::Rectangle<int> VerticalSliderWithLabels::getSliderBounds() const
+{
+    auto bounds = getLocalBounds();
+
+    bounds.removeFromTop(getTextHeight());
+
+    auto size = juce::jmin(bounds.getWidth(), bounds.getHeight());
+
+    size -= getTextHeight() * 1.5;
+    juce::Rectangle<int> r;
+    r.setSize(size, size);
+    r.setCentre(bounds.getCentreX(), 0);
+    //r.setY(2);
+    r.setY(bounds.getY());
+
+    return r;
+
+}
+
+juce::String VerticalSliderWithLabels::getDisplayString() const
+{
+    if (auto* choiceParam = dynamic_cast<juce::AudioParameterChoice*>(param))
+        return choiceParam->getCurrentChoiceName();
+
+    juce::String str;
+    bool addK = false;
+
+    if (auto* floatParam = dynamic_cast<juce::AudioParameterFloat*>(param))
+    {
+        float val = getValue();
+
+        addK = truncateKiloValue(val);
+
+        str = juce::String(val, (addK ? 2 : 0));
+    }
+    else
+    {
+        jassertfalse; //this shouldn't happen!
+    }
+
+    if (suffix.isNotEmpty())
+    {
+        str << " ";
+        if (addK)
+            str << "k";
+
+        str << suffix;
+    }
+
+    return str;
+}
+
+
+void VerticalSliderWithLabels::changeParam(juce::RangedAudioParameter* p)
 {
     param = p;
     repaint();

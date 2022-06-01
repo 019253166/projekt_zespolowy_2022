@@ -246,6 +246,11 @@ private:
     juce::AudioParameterFloat* lowCrossoverParam{ nullptr };
     juce::AudioParameterFloat* midCrossoverParam{ nullptr };
     juce::AudioParameterFloat* highCrossoverParam{ nullptr };
+
+    juce::AudioParameterFloat* lowThresholdParam{ nullptr };
+    juce::AudioParameterFloat* lowMidThresholdParam{ nullptr };
+    juce::AudioParameterFloat* highMidThresholdParam{ nullptr };
+    juce::AudioParameterFloat* highThresholdParam{ nullptr };
 };
 
 struct LookAndFeel : juce::LookAndFeel_V4
@@ -297,6 +302,38 @@ struct RotarySliderWithLabels : juce::Slider
 
 private:
     //LookAndFeel lnf;
+
+    juce::RangedAudioParameter* param;
+    juce::String suffix;
+};
+
+struct VerticalSliderWithLabels : juce::Slider
+{
+    VerticalSliderWithLabels(juce::RangedAudioParameter* rap, const juce::String& unitSuffix, const juce::String& title /*= "NO TITLE"*/) :
+        juce::Slider(juce::Slider::SliderStyle::LinearVertical,
+            juce::Slider::TextEntryBoxPosition::NoTextBox),
+        param(rap),
+        suffix(unitSuffix)
+    {
+        setName(title);
+    }
+
+    struct LabelPos
+    {
+        float pos;
+        juce::String label;
+    };
+
+    juce::Array<LabelPos> labels;
+
+    void paint(juce::Graphics& g) override;
+    juce::Rectangle<int> getSliderBounds() const;
+    int getTextHeight() const { return 14; }
+    juce::String getDisplayString() const;
+
+    void changeParam(juce::RangedAudioParameter* p);
+
+private:
 
     juce::RangedAudioParameter* param;
     juce::String suffix;

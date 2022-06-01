@@ -496,10 +496,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout Projekt_zespoowy_2022AudioPr
 	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Output_Gain), parameters.at(Names::Output_Gain), NormalisableRange<float>(-20.0f, 20.0f, 0.1f, 1.0f), 0));
 
 
-	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Threshold_Low), parameters.at(Names::Threshold_Low), NormalisableRange<float>(-50, 0, 1, 1), 0));
-	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Threshold_LowMid), parameters.at(Names::Threshold_LowMid), NormalisableRange<float>(-50, 0, 1, 1), 0));
-	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Threshold_HighMid), parameters.at(Names::Threshold_HighMid), NormalisableRange<float>(-50, 0, 1, 1), 0));
-	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Threshold_High), parameters.at(Names::Threshold_High), NormalisableRange<float>(-50, 0, 1, 1), 0));
+	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Threshold_Low), parameters.at(Names::Threshold_Low), NormalisableRange<float>(-48, 0, 1, 1), 0));
+	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Threshold_LowMid), parameters.at(Names::Threshold_LowMid), NormalisableRange<float>(-48, 0, 1, 1), 0));
+	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Threshold_HighMid), parameters.at(Names::Threshold_HighMid), NormalisableRange<float>(-48, 0, 1, 1), 0));
+	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Threshold_High), parameters.at(Names::Threshold_High), NormalisableRange<float>(-48, 0, 1, 1), 0));
 
 	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Attack_Low), parameters.at(Names::Attack_Low), attackReleaseRange, 50));
 	layout.add(std::make_unique<AudioParameterFloat>(parameters.at(Names::Attack_LowMid), parameters.at(Names::Attack_LowMid), attackReleaseRange, 50));
